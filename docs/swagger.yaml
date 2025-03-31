@@ -1,0 +1,470 @@
+basePath: /api/v1
+definitions:
+  model.Song:
+    properties:
+      group:
+        type: string
+      link:
+        type: string
+      owner:
+        type: string
+      release_date:
+        type: string
+      song:
+        type: string
+      text:
+        type: string
+    type: object
+  request.AddSongRequest:
+    properties:
+      group:
+        description: Название группы (обязательное)
+        example: The Beatles
+        type: string
+      link:
+        description: Ссылка на песню (обязательное)
+        example: https://example.com/yesterday
+        type: string
+      release_date:
+        description: Дата релиза в формате dd.mm.yyyy (обязательное)
+        example: 06.08.1965
+        type: string
+      song:
+        description: Название песни (обязательное)
+        example: Yesterday
+        type: string
+      text:
+        description: Текст песни (обязательное)
+        example: Yesterday, all my troubles seemed so far away...
+        type: string
+    required:
+    - group
+    - link
+    - release_date
+    - song
+    - text
+    type: object
+  request.GetSongRequest:
+    properties:
+      group:
+        description: Название группы (обязательное)
+        example: Queen
+        type: string
+      song:
+        description: Название песни (обязательное)
+        example: Bohemian Rhapsody
+        type: string
+    required:
+    - group
+    - song
+    type: object
+  request.GetSongsRequest:
+    properties:
+      group:
+        description: Название группы (обязательное)
+        example: Queen
+        type: string
+    required:
+    - group
+    type: object
+  request.LoginRequest:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      password:
+        example: qwerty123
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  request.RegisterRequest:
+    properties:
+      email:
+        example: user@example.com
+        type: string
+      name:
+        example: John Doe
+        type: string
+      password:
+        example: strong-password
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  request.UpdateSongRequest:
+    properties:
+      group:
+        description: Новое название группы
+        example: The Beatles (Remastered)
+        type: string
+      link:
+        description: Новая ссылка на песню
+        example: https://example.com/yesterday-remastered
+        type: string
+      release_date:
+        description: Новая дата релиза в формате dd.mm.yyyy
+        example: 01.01.2023
+        type: string
+      song:
+        description: Новое название песни
+        example: Yesterday (Remastered)
+        type: string
+      text:
+        description: Обновленный текст песни
+        example: Updated lyrics text...
+        type: string
+    type: object
+  request.VerifyRequest:
+    properties:
+      code:
+        example: "1234"
+        type: string
+      session_id:
+        example: UexEJzPJ3M
+        type: string
+    required:
+    - code
+    - session_id
+    type: object
+  response.GetSongResponse:
+    properties:
+      release_date:
+        example: 06.08.1965
+        type: string
+      text:
+        example: Yesterday, all my troubles seemed so far away...
+        type: string
+    type: object
+  response.LoginResponse:
+    properties:
+      jwt_token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+    type: object
+  response.RegisterResponse:
+    properties:
+      session_id:
+        example: UexEJzPJ3M
+        type: string
+    type: object
+  response.VerifyResponse:
+    properties:
+      jwt_token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  title: Music Library API
+  version: "1.0"
+paths:
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Вход в систему с email и паролем
+      parameters:
+      - description: Данные для входа
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/request.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.LoginResponse'
+        "400":
+          description: Неверный формат данных
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Неверные учетные данные
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Ошибка генерации токена
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      tags:
+      - auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Создание нового аккаунта с подтверждением по email
+      parameters:
+      - description: Данные для регистрации
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/request.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.RegisterResponse'
+        "400":
+          description: Неверные данные/пользователь существует
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      tags:
+      - auth
+  /auth/verify:
+    post:
+      consumes:
+      - application/json
+      description: Верификация email с кодом подтверждения
+      parameters:
+      - description: Данные для верификации
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/request.VerifyRequest'
+      produces:
+      - application/json
+      responses:
+        "202":
+          description: Accepted
+          schema:
+            $ref: '#/definitions/response.VerifyResponse'
+        "400":
+          description: Неверный код/сессия
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Ошибка генерации токена
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      tags:
+      - auth
+  /info:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает данные песни по названию и группе
+      parameters:
+      - description: Данные для поиска
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetSongRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.GetSongResponse'
+        "400":
+          description: Неверный формат запроса
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Песня не найдена
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      tags:
+      - songs
+  /info/group:
+    get:
+      consumes:
+      - application/json
+      description: Возвращает список песен указанной группы с пагинацией
+      parameters:
+      - description: Название группы
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/request.GetSongsRequest'
+      - description: Лимит (по умолчанию 10)
+        in: query
+        maximum: 100
+        minimum: 1
+        name: limit
+        type: integer
+      - description: Смещение (по умолчанию 0)
+        in: query
+        minimum: 0
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Song'
+            type: array
+        "400":
+          description: Неверный формат параметров
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Группа не найдена
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      tags:
+      - songs
+  /song:
+    post:
+      consumes:
+      - application/json
+      description: Создает новую запись о песне. Требует авторизации.
+      parameters:
+      - description: Данные песни
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/request.AddSongRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Созданная песня
+          schema:
+            $ref: '#/definitions/model.Song'
+        "400":
+          description: Неверные данные/ошибка авторизации
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      tags:
+      - songs
+  /song/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Удаляет песню по ID. Требует прав владельца.
+      parameters:
+      - description: ID песни
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Удаленная песня
+          schema:
+            $ref: '#/definitions/model.Song'
+        "400":
+          description: Неверный формат ID
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Ошибка авторизации
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Песня не найдена
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      tags:
+      - songs
+    patch:
+      consumes:
+      - application/json
+      description: Обновляет данные песни по её ID. Требует авторизации.
+      parameters:
+      - description: ID песни
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Данные для обновления
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/request.UpdateSongRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешно обновленная песня
+          schema:
+            $ref: '#/definitions/model.Song'
+        "400":
+          description: Неверный формат ID/данных, ошибка авторизации
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Песня не найдена
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      tags:
+      - songs
+swagger: "2.0"
