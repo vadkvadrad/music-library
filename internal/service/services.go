@@ -11,13 +11,19 @@ type Deps struct {
 }
 
 type Services struct {
-	Auth *AuthService
-	Song *SongService
+	Auth   *AuthService
+	Album  *AlbumService
+	Artist *ArtistService
+	Search *SearchService
+	Profile *ProfileService
 }
 
 func NewServices(deps *Deps) *Services {
 	return &Services{
-		Auth: NewAuthService(deps.Repositories.User, deps.Event),
-		Song: NewSongService(deps.Repositories.Song),
+		Auth:   NewAuthService(deps.Repositories.User, deps.Event),
+		Album:  NewAlbumService(deps.Repositories.Album, deps.Repositories.Artist),
+		Artist: NewArtistService(deps.Repositories.Artist),
+		Search: NewSearchService(deps.Repositories.Song, deps.Repositories.Album, deps.Repositories.Artist),
+		Profile: NewProfileService(deps.Repositories.Profile),
 	}
 }

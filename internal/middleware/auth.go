@@ -4,7 +4,6 @@ import (
 	"music-lib/internal/config"
 	"music-lib/pkg/er"
 	"music-lib/pkg/jwt"
-	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -51,9 +50,7 @@ func AuthMiddleware(config *config.Config) gin.HandlerFunc {
 
 // Вспомогательная функция для обработки неавторизованных запросов
 func abortWithUnauthorized(c *gin.Context) {
-	c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
-		"error": er.ErrNotAuthorized.Message,
-	})
+	c.Error(&er.UnauthorizedError{Message: "Can't authorize, bad token"})
 }
 
 // Вспомогательная функция для получения данных пользователя из контекста

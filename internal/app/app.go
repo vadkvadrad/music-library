@@ -42,6 +42,7 @@ func RunV1() {
 	if err != nil {
 		panic("sender unable " + err.Error())
 	}
+	
 	go sender.Listen()
 
 	// Router run

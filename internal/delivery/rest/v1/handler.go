@@ -8,14 +8,14 @@ import (
 )
 
 type Handler struct {
-	services     *service.Services
-	config *config.Config
+	services *service.Services
+	config   *config.Config
 }
 
 func NewHandler(services *service.Services, conf *config.Config) *Handler {
 	return &Handler{
-		services:     services,
-		config: conf,
+		services: services,
+		config:   conf,
 	}
 }
 
@@ -24,5 +24,8 @@ func (h *Handler) Init(api *gin.RouterGroup) {
 	{
 		h.initAuthRoutes(v1)
 		h.initSongRoutes(v1)
+		h.initProfileRoutes(v1)
+		h.initArtistRoutes(v1)
+		h.initAlbumRoutes(v1)
 	}
 }

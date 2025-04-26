@@ -53,23 +53,20 @@ func Load(conf *config.Config, event *event.EventBus) (*Sender, error) {
 
 	conn, err := tls.Dial("tcp", address, tlsConfig)
 	if err != nil {
-		err, _ := er.As(err)
-		return nil, er.WrapMessage(err, "Ошибка подключения")
+		return nil, er.InternalError{Message: "EMAIL: can't connect to server"}
 	}
 	defer conn.Close()
 
 	// Создаем SMTP-клиент
 	client, err := smtp.NewClient(conn, server)
 	if err != nil {
-		err, _ := er.As(err)
-		return nil, er.WrapMessage(err, "Ошибка создания клиента")
+		return nil, er.InternalError{Message: "EMAIL: can't create client"}
 	}
 	defer client.Quit()
 
 	// Аутентификация
 	if err = client.Auth(auth); err != nil {
-		err, _ := er.As(err)
-		return nil, er.WrapMessage(err, "Ошибка аутентификации")
+		return nil, er.InternalError{Message: "EMAIL: authorization error"}
 	}
 
 	return &Sender{
@@ -118,8 +115,7 @@ func (send *Sender) Email(to string, subject, text string) error {
 
 	// Отправляем письмо
 	if err := e.SendWithTLS(send.Server+":"+send.Port, send.Auth, send.TlsConfig); err != nil {
-		err, _ := er.As(err)
-		return er.WrapMessage(err, "Ошибка отправки письма")
+		return er.InternalError{Message: "EMAIL: can't send email"}
 	}
 	return nil
 }

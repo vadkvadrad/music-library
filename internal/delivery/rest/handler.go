@@ -5,12 +5,15 @@ import (
 	"music-lib/internal/delivery/rest/v1"
 	"music-lib/internal/middleware"
 	"music-lib/internal/service"
+	"music-lib/pkg/er"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
-	ginSwagger "github.com/swaggo/gin-swagger"
-	swaggerFiles "github.com/swaggo/files"
 	docs "music-lib/docs"
+
+	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+	//"go.uber.org/zap"
 )
 
 type Handler struct {
@@ -26,11 +29,20 @@ func NewHandler(services *service.Services, conf *config.Config) *Handler {
 }
 
 func (h *Handler) Init(conf *config.Config) *gin.Engine {
+	//logger, _ := zap.NewProduction()
+
+	errorHandler := er.NewErrorHandler(&er.ErrorHandlerConfig{
+		LogErrors: true,
+		ShowInternal: true,
+		AppName:      "music-lib",
+	})
+
 	// Init gin handler
 	router := gin.Default()
 	router.Use(
 		gin.Recovery(),
 		middleware.Logger(),
+		errorHandler.GinMiddleware(),
 	)
 
 	docs.SwaggerInfo.BasePath = "/api/v1"

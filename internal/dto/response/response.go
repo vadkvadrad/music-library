@@ -1,8 +1,50 @@
 package response
 
-type GetSongResponse struct {
-	ReleaseDate string `json:"release_date" example:"06.08.1965"`
-	Text        string `json:"text" example:"Yesterday, all my troubles seemed so far away..."`
+import "time"
+
+type PaginatedResponse struct {
+	Data       any        `json:"data"`
+	Pagination Pagination `json:"pagination"`
+}
+
+type Pagination struct {
+	Limit  int   `json:"limit"`
+	Offset int   `json:"offset"`
+	Total  int64 `json:"total"`
+}
+
+type SearchResult map[string]PaginatedResponse
+
+// Для ответов с деталями артиста
+type ArtistDTO struct {
+	ID            uint       `json:"id"`
+	Name          string     `json:"name"`
+	Description   string     `json:"description"`
+	FormationYear time.Time  `json:"formation_year"`
+	Albums        []AlbumDTO `json:"albums"`
+}
+
+// Для ответов с деталями альбома
+type AlbumDTO struct {
+	ID          uint      `json:"id"`
+	Title       string    `json:"title"`
+	ReleaseDate time.Time `json:"release_date"` // Формат: "2006-01-02"
+	CoverArtURL string    `json:"cover_art_url"`
+	Songs       []SongDTO `json:"songs"`
+}
+
+// Для ответов с деталями песни
+type SongDTO struct {
+	ID       uint   `json:"id"`
+	Title    string `json:"title"`
+	Duration int    `json:"duration"`
+	FilePath string `json:"file_path"` // или URL для скачивания
+}
+
+// Для ответов с текстом песни
+type LyricsDTO struct {
+	SongID uint   `json:"song_id"`
+	Text   string `json:"text"`
 }
 
 type LoginResponse struct {
@@ -15,4 +57,9 @@ type RegisterResponse struct {
 
 type VerifyResponse struct {
 	Token string `json:"jwt_token" example:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."`
+}
+
+type SearchErrorResponse struct {
+	Error error  `json:"error"`
+	Tip   string `json:"tip"`
 }

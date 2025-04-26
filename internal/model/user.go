@@ -13,15 +13,18 @@ const (
 	RoleAdmin role = "admin"
 )
 
+// Пользователь
 type User struct {
 	gorm.Model
-	Name       string `json:"name"`
-	Email      string `json:"email"`
-	Password   string `json:"password"`
-	Role       role   `json:"role"`
-	SessionId  string `json:"session_id"`
-	Code       string `json:"code"`
-	IsVerified bool   `json:"is_verified"`
+	Name       string  `gorm:"uniqueIndex;not null" json:"name"`
+	Email      string  `gorm:"uniqueIndex;not null" json:"email"`
+	Password   string  `gorm:"not null" json:"-"`
+	Role       role    `gorm:"type:varchar(20);default:'user'" json:"role"`
+	SessionId  string  `gorm:"index" json:"session_id"`
+	Code       string  `json:"code"`
+	IsVerified bool    `gorm:"default:false" json:"is_verified"`
+	Profile    Profile `gorm:"foreignKey:UserID"`
+	Artist     Artist  `gorm:"foreignKey:UserID"`
 }
 
 func (u *User) Generate() {
