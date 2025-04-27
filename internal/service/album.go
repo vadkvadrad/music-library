@@ -27,17 +27,17 @@ func NewAlbumService(album repository.IAlbumRepository, artist repository.IArtis
 }
 
 func (s *AlbumService) NewAlbum(ctx *gin.Context, body request.NewAlbumRequest, userID uint) error {
-	formationDate, err := time.Parse("2006-01-02", body.ReleaseDate)
-	if err != nil {
-		return er.ErrDateFormat
-	}
-
 	artist, err := s.artistRepository.GetByUserID(ctx, userID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return er.ErrArtistNotExists
 		}
 		return &er.InternalError{Message: fmt.Sprintf("NewAlbum: can't get artist: %s", err.Error())}
+	}
+
+	formationDate, err := time.Parse("2006-01-02", body.ReleaseDate)
+	if err != nil {
+		return er.ErrDateFormat
 	}
 
 	for _, album := range artist.Albums {
@@ -73,7 +73,7 @@ func (s *AlbumService) GetAlbum(ctx *gin.Context, strID string) (*model.Album, e
 			return nil, er.ErrAlbumNotExists
 		}
 
-		return nil, er.InternalError{Message: err.Error()}
+		return nil, &er.InternalError{Message: err.Error()}
 	}
 
 	return album, nil
