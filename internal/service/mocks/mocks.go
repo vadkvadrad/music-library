@@ -20,6 +20,7 @@ type MockArtistRepo struct {
     GetByUserIDFunc   func(ctx context.Context, userID uint) (*model.Artist, error)
     GetWithAlbumsFunc func(ctx context.Context, id uint) (*model.Artist, error)
     IsExistsFunc      func(ctx context.Context, name string) bool
+    GetArtistAlbumByUserIDFunc func(ctx context.Context, userID uint, albumID uint) (*model.Album, error)
 }
 
 func (m *MockArtistRepo) Create(ctx context.Context, entity *model.Artist) error {
@@ -52,6 +53,10 @@ func (m *MockArtistRepo) GetWithAlbums(ctx context.Context, id uint) (*model.Art
 
 func (m *MockArtistRepo) IsExists(ctx context.Context, name string) bool {
     return m.IsExistsFunc(ctx, name)
+}
+
+func (m *MockArtistRepo) GetArtistAlbumByUserID(ctx context.Context, userID uint, albumID uint) (*model.Album, error) {
+    return m.GetArtistAlbumByUserIDFunc(ctx, userID, albumID)
 }
 
 // Мок IAlbumRepository

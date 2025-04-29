@@ -15,14 +15,14 @@ import (
 )
 
 type AlbumService struct {
-	albumRepository repository.IAlbumRepository
+	albumRepository  repository.IAlbumRepository
 	artistRepository repository.IArtistRepository
 }
 
 func NewAlbumService(album repository.IAlbumRepository, artist repository.IArtistRepository) *AlbumService {
 	return &AlbumService{
 		artistRepository: artist,
-        albumRepository: album,
+		albumRepository:  album,
 	}
 }
 
@@ -47,9 +47,9 @@ func (s *AlbumService) NewAlbum(ctx *gin.Context, body request.NewAlbumRequest, 
 	}
 
 	err = s.albumRepository.Create(ctx, &model.Album{
-		Title: body.Title,
-		ArtistID: artist.ID,
-		Songs: nil,
+		Title:       body.Title,
+		ArtistID:    artist.ID,
+		Songs:       nil,
 		ReleaseDate: formationDate,
 		CoverArtURL: body.CoverArtURL,
 	})
@@ -59,7 +59,6 @@ func (s *AlbumService) NewAlbum(ctx *gin.Context, body request.NewAlbumRequest, 
 	}
 	return nil
 }
-
 
 func (s *AlbumService) GetAlbum(ctx *gin.Context, strID string) (*model.Album, error) {
 	id, err := strconv.Atoi(strID)

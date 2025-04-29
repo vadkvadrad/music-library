@@ -32,6 +32,7 @@ type IArtistRepository interface {
 	GetByID(ctx context.Context, id uint) (*model.Artist, error)
 	GetByUserID(ctx context.Context, userID uint) (*model.Artist, error)
 	GetWithAlbums(ctx context.Context, id uint) (*model.Artist, error)
+	GetArtistAlbumByUserID(ctx context.Context, userID uint, albumID uint) (*model.Album, error)
 	IsExists(ctx context.Context, name string) bool
 }
 

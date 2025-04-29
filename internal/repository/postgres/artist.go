@@ -111,3 +111,17 @@ func (r *ArtistRepository) IsExists(ctx context.Context, name string) bool {
 
     return count > 0
 }
+
+func (r *ArtistRepository) GetArtistAlbumByUserID(ctx context.Context, userID uint, albumID uint) (*model.Album, error) {
+	var artist *model.Artist
+	err := r.db.WithContext(ctx).
+		Preload("Albums", func(db *db.Db) *gorm.DB {
+			return db.DB.Where("ID = ?", albumID)
+		}(r.db)).
+		First(&artist, "user_id = ?", userID).Error
+
+	if err != nil {
+		return nil, err
+	}
+	return &artist.Albums[0], nil
+}
