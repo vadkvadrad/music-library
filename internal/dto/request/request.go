@@ -56,3 +56,7 @@ type Couplet struct {
 type NewGenreRequest struct {
 	Name string `json:"genre_name" binding:"required"`
 }
+
+type UpdateGenreRequest struct {
+	NewName string `json:"genre_name_update" binding:"required"`
+}

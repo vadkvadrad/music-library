@@ -44,3 +44,14 @@ func (r *GenreRepository) IsExists(ctx context.Context, name string) bool {
 
 	return count > 0
 }
+
+func (r *GenreRepository) GetById(ctx context.Context, id uint) (*model.Genre, error) {
+	var genre *model.Genre
+	err := r.db.WithContext(ctx).
+		First(&genre, id).Error
+
+	if err != nil {
+		return nil, err
+	}
+	return genre, nil
+}

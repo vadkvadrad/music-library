@@ -79,6 +79,7 @@ type IProfileRepository interface {
 type IGenreRepository interface {
 	Repository[model.Genre]
 
+	GetById(ctx context.Context, id uint) (*model.Genre, error)
 	IsExists(ctx context.Context, name string) bool
 }
 

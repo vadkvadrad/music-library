@@ -106,7 +106,10 @@ var (
 		Message: "Album does not exist",
 	}
 
-
+	ErrGenreNotExists = &NotFoundError{
+		Message: "This genre does not exists",
+	}
+	
 	ErrUserNotVerified = &ValidationError{
 		Message: "User is not verified",
 	}
