@@ -65,8 +65,6 @@ func (r *SongRepository) ExistsInAlbum(ctx context.Context, albumID uint, songNa
         return false
     }
 
-	fmt.Println("matches got: ", count)
-
     return count > 0
 }
 

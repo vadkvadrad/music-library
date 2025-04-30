@@ -107,8 +107,6 @@ func (r *ArtistRepository) IsExists(ctx context.Context, name string) bool {
         return false
     }
 
-	fmt.Println("matches got: ", count)
-
     return count > 0
 }
 

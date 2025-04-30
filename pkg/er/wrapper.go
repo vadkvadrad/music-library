@@ -86,6 +86,10 @@ var (
 		ResourceType: "Song already exist in this album",
 	}
 
+	ErrGenreExists = &ConflictError{
+		ResourceType: "This genre already exists",
+	}
+
 	ErrArtistLinked = &ConflictError{
 		ResourceType: "Album already linked to your account",
 	}

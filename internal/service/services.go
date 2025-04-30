@@ -18,6 +18,7 @@ type Services struct {
 	Album   *AlbumService
 	Artist  *ArtistService
 	Song    *SongService
+	Genre   *GenreService
 	Search  *SearchService
 	Profile *ProfileService
 }
@@ -28,6 +29,7 @@ func NewServices(deps *Deps) *Services {
 		Album:   NewAlbumService(deps.Repositories.Album, deps.Repositories.Artist),
 		Artist:  NewArtistService(deps.Repositories.Artist),
 		Song:    NewSongService(deps.Repositories.Song, deps.Repositories.Album, deps.Logger),
+		Genre:   NewGenreService(deps.Repositories.Genre, deps.Logger),
 		Search:  NewSearchService(deps.Repositories.Song, deps.Repositories.Album, deps.Repositories.Artist),
 		Profile: NewProfileService(deps.Repositories.Profile),
 	}

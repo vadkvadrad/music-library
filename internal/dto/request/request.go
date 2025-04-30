@@ -28,9 +28,9 @@ type NewArtistRequest struct {
 }
 
 type NewAlbumRequest struct {
-	Title       string           `json:"title" binding:"required"`
-	ReleaseDate string           `json:"release_date" binding:"required"`
-	CoverArtURL string           `json:"cover_art_url" binding:"required"`
+	Title       string `json:"title" binding:"required"`
+	ReleaseDate string `json:"release_date" binding:"required"`
+	CoverArtURL string `json:"cover_art_url" binding:"required"`
 }
 
 type NewSongRequest struct {
@@ -51,4 +51,8 @@ type AddLyrics struct {
 
 type Couplet struct {
 	Text string `json:"couplet" binding:"required"`
+}
+
+type NewGenreRequest struct {
+	Name string `json:"genre_name" binding:"required"`
 }

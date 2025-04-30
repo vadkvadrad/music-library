@@ -76,6 +76,12 @@ type IProfileRepository interface {
 	GetByUserID(ctx context.Context, userID uint) (*model.Profile, error)
 }
 
+type IGenreRepository interface {
+	Repository[model.Genre]
+
+	IsExists(ctx context.Context, name string) bool
+}
+
 type Repositories struct {
 	// User
 	User IUserRepository
@@ -84,6 +90,7 @@ type Repositories struct {
 	Album  IAlbumRepository
 	Artist IArtistRepository
 	Lyrics ILyricsRepository
+	Genre  IGenreRepository
 	// Profile
 	Profile IProfileRepository
 }
@@ -95,7 +102,8 @@ func NewPostgresRepositories(db *db.Db) *Repositories {
 		// Music
 		Artist: postgres.NewArtistRepository(db),
 		Album:  postgres.NewAlbumRepository(db),
-		Song: postgres.NewSongRepository(db),
+		Song:   postgres.NewSongRepository(db),
+		Genre:  postgres.NewGenreRepository(db),
 		//Profile
 		Profile: postgres.NewProfileRepository(db),
 	}

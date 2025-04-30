@@ -31,5 +31,6 @@ func (h *Handler) Init(api *gin.RouterGroup) {
 		h.initProfileRoutes(v1)
 		h.initArtistRoutes(v1)
 		h.initAlbumRoutes(v1)
+		h.initGenreRoutes(v1)
 	}
 }
