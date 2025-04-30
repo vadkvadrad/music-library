@@ -13,18 +13,21 @@ import (
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"go.uber.org/zap"
 	//"go.uber.org/zap"
 )
 
 type Handler struct {
 	services *service.Services
 	config   *config.Config
+	logger   *zap.SugaredLogger
 }
 
-func NewHandler(services *service.Services, conf *config.Config) *Handler {
+func NewHandler(services *service.Services, conf *config.Config, sugar *zap.SugaredLogger) *Handler {
 	return &Handler{
 		services: services,
 		config:   conf,
+		logger:   sugar,
 	}
 }
 
@@ -32,7 +35,7 @@ func (h *Handler) Init(conf *config.Config) *gin.Engine {
 	//logger, _ := zap.NewProduction()
 
 	errorHandler := er.NewErrorHandler(&er.ErrorHandlerConfig{
-		LogErrors: true,
+		LogErrors:    true,
 		ShowInternal: true,
 		AppName:      "music-lib",
 	})
@@ -47,7 +50,6 @@ func (h *Handler) Init(conf *config.Config) *gin.Engine {
 
 	docs.SwaggerInfo.BasePath = "/api/v1"
 
-
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	router.GET("/ping", func(ctx *gin.Context) {
@@ -60,7 +62,7 @@ func (h *Handler) Init(conf *config.Config) *gin.Engine {
 }
 
 func (h *Handler) initApi(router *gin.Engine) {
-	handlers := v1.NewHandler(h.services, h.config)
+	handlers := v1.NewHandler(h.services, h.config, h.logger)
 	api := router.Group("/api")
 	{
 		handlers.Init(api)

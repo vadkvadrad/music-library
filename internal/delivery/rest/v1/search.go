@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (h *Handler) initSongRoutes(api *gin.RouterGroup) {
+func (h *Handler) initSearchRoutes(api *gin.RouterGroup) {
 	search := api.Group("/search")
 	{
 		search.GET("", h.Search())

@@ -32,7 +32,7 @@ type IArtistRepository interface {
 	GetByID(ctx context.Context, id uint) (*model.Artist, error)
 	GetByUserID(ctx context.Context, userID uint) (*model.Artist, error)
 	GetWithAlbums(ctx context.Context, id uint) (*model.Artist, error)
-	GetArtistAlbumByUserID(ctx context.Context, userID uint, albumID uint) (*model.Album, error)
+	GetArtistAlbumByUserID(ctx context.Context, userID uint, albumID uint) (*model.Album, int, error)
 	IsExists(ctx context.Context, name string) bool
 }
 
@@ -50,6 +50,7 @@ type ISongRepository interface {
 	Repository[model.Song]
 	Searchable[model.Song]
 
+	ExistsInAlbum(ctx context.Context, albumID uint, songName string) bool
 	GetByID(ctx context.Context, id uint) (*model.Song, error)
 	GetByArtistID(ctx context.Context, artistID uint, sort string, limit, offset int) ([]model.Song, int64, error)
 	GetByAlbumID(ctx context.Context, albumID uint, sort string, limit, offset int) ([]model.Song, int64, error)
@@ -94,6 +95,7 @@ func NewPostgresRepositories(db *db.Db) *Repositories {
 		// Music
 		Artist: postgres.NewArtistRepository(db),
 		Album:  postgres.NewAlbumRepository(db),
+		Song: postgres.NewSongRepository(db),
 		//Profile
 		Profile: postgres.NewProfileRepository(db),
 	}

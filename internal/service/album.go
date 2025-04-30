@@ -77,3 +77,19 @@ func (s *AlbumService) GetAlbum(ctx *gin.Context, strID string) (*model.Album, e
 
 	return album, nil
 }
+
+
+func (s *AlbumService) GetArtistAlbum(ctx *gin.Context, userID uint, albumID uint) (*model.Album, error) {
+	album, count, err := s.artistRepository.GetArtistAlbumByUserID(ctx, userID, albumID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, er.ErrAlbumNotExists
+		}
+		return nil, &er.InternalError{Message: err.Error()}
+	}
+
+	if count <= 0 {
+		return nil, er.ErrAlbumNotExists
+	}
+	return album, nil
+}

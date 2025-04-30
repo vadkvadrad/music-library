@@ -82,6 +82,10 @@ var (
 		ResourceType: "Album already exists",
 	}
 
+	ErrSongExists = &ConflictError{
+		ResourceType: "Song already exist in this album",
+	}
+
 	ErrArtistLinked = &ConflictError{
 		ResourceType: "Album already linked to your account",
 	}

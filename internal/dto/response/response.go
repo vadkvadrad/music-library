@@ -63,3 +63,9 @@ type SearchErrorResponse struct {
 	Error error  `json:"error"`
 	Tip   string `json:"tip"`
 }
+
+type AddSongResponse struct {
+	AlbumID   uint   `json:"added_to_album"`
+	AlbumName string `json:"album_name"`
+	ArtistID  uint   `json:"artist_id"`
+}

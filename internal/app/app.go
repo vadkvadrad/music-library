@@ -9,6 +9,8 @@ import (
 	"music-lib/internal/service"
 	"music-lib/pkg/db"
 	"music-lib/pkg/event"
+
+	"go.uber.org/zap"
 )
 
 func RunV1() {
@@ -17,6 +19,11 @@ func RunV1() {
 	if err != nil {
 		panic("bad config params: " + err.Error())
 	}
+
+	// Logger 
+	logger, _ := zap.NewDevelopment()
+	defer logger.Sync() // flushes buffer, if any
+	sugar := logger.Sugar()
 
 	// Database
 	dbCfg := db.NewDbConfig(cfg.Db.Dsn)
@@ -32,10 +39,11 @@ func RunV1() {
 	services := service.NewServices(&service.Deps{
 		Event: eventBus,
 		Repositories: repositories,
+		Logger: sugar,
 	})
 
 	// Handlers
-	handlers := rest.NewHandler(services, cfg)
+	handlers := rest.NewHandler(services, cfg, sugar)
 	router := handlers.Init(cfg)
 
 	sender, err := email.Load(cfg, eventBus)
