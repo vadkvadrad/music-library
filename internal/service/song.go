@@ -15,6 +15,7 @@ type SongService struct {
 	albumRepo     repository.IAlbumRepository
 	songGenreRepo repository.ISongGenreRepository
 	genreRepo     repository.IGenreRepository
+	lyricsRepo repository.ILyricsRepository
 
 	logger *zap.SugaredLogger
 }
@@ -24,6 +25,7 @@ func NewSongService(
 	album repository.IAlbumRepository,
 	songGenre repository.ISongGenreRepository,
 	genre repository.IGenreRepository,
+	lyrics repository.ILyricsRepository,
 	sugar *zap.SugaredLogger,
 ) *SongService {
 	return &SongService{
@@ -31,6 +33,7 @@ func NewSongService(
 		albumRepo:     album,
 		songGenreRepo: songGenre,
 		genreRepo:     genre,
+		lyricsRepo: lyrics,
 		logger:        sugar,
 	}
 }
@@ -50,7 +53,6 @@ func (s *SongService) AddSong(ctx context.Context, album *model.Album, songReq r
 		)
 		return er.ErrSongExists
 	}
-	
 
 	s.logger.Debug("Attempting to create song")
 
@@ -72,15 +74,30 @@ func (s *SongService) AddSong(ctx context.Context, album *model.Album, songReq r
 		return &er.InternalError{Message: err.Error()}
 	}
 
+	s.logger.Debug("Attempting to add genres")
 	err = s.addGenres(ctx, song.ID, songReq.Genres)
 	if err != nil {
-		s.logger.Errorw("Failed to connect genres",
+		s.logger.Errorw("Failed to add genres",
 			"album_id", album.ID,
 			"song_title", songReq.Title,
 			"error", err.Error(),
 		)
 		return &er.InternalError{Message: err.Error()}
 	}
+
+	s.logger.Debug("Attempting to add lyrics")
+	err = s.addLyrics(ctx, song.ID, songReq.Lyrics)
+	if err != nil {
+		s.logger.Errorw("Failed to add lyrics",
+			"album_id", album.ID,
+			"song_title", songReq.Title,
+			"error", err.Error(),
+		)
+		return &er.InternalError{Message: err.Error()}
+	}
+
+
+	s.logger.Debug("Song created successfully")
 
 	return nil
 }
@@ -106,4 +123,20 @@ func (s *SongService) addGenres(ctx context.Context, songID uint, req []request.
 		}
 	}
 	return nil
+}
+
+
+func (s *SongService) addLyrics(ctx context.Context, songID uint, req request.AddLyrics) error {
+	var lyrics model.Lyrics
+	lyrics.SongID = songID
+
+	for number, couplet := range req.Text {
+		lyrics.Couplets = append(lyrics.Couplets, model.Couplet{
+			LyricsID: songID,
+			Number: uint(number),
+			Text: couplet.Text,
+		})
+	}
+
+	return s.lyricsRepo.Upsert(ctx, &lyrics)
 }

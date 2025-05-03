@@ -112,6 +112,7 @@ func NewPostgresRepositories(db *db.Db) *Repositories {
 		Song:      postgres.NewSongRepository(db),
 		Genre:     postgres.NewGenreRepository(db),
 		SongGenre: postgres.NewSongGenreRepository(db),
+		Lyrics:    postgres.NewLyricsRepository(db),
 		//Profile
 		Profile: postgres.NewProfileRepository(db),
 	}
