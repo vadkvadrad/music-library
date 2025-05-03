@@ -39,12 +39,13 @@ func (s *ArtistService) NewArtist(ctx *gin.Context, body request.NewArtistReques
 		return er.ErrDateFormat
 	}
 
-	return s.artistRepository.Create(ctx, &model.Artist{
+	_, err = s.artistRepository.Create(ctx, &model.Artist{
 		Name:          body.ArtistName,
 		Description:   body.Description,
 		FormationYear: formationDate,
 		UserID:        userID,
 	})
+	return err
 }
 
 

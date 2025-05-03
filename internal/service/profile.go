@@ -24,7 +24,7 @@ func NewProfileService(profile repository.IProfileRepository) *ProfileService {
 }
 
 func (s *ProfileService) NewProfile(c *gin.Context, body request.NewProfileRequest, userID uint) error {
-	err := s.profileRepository.Create(c, &model.Profile{
+	_, err := s.profileRepository.Create(c, &model.Profile{
 		UserID:    userID,
 		Bio:       body.Bio,
 		AvatarURL: body.AvatarURL,

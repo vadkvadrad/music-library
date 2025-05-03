@@ -16,12 +16,14 @@ func NewGenreRepository(db *db.Db) *GenreRepository {
 	}
 }
 
-func (r *GenreRepository) Create(ctx context.Context, entity *model.Genre) error {
-	return r.db.WithContext(ctx).Create(entity).Error
+func (r *GenreRepository) Create(ctx context.Context, entity *model.Genre) (*model.Genre, error) {
+	err := r.db.WithContext(ctx).Create(entity).Error
+	return entity, err
 }
 
-func (r *GenreRepository) Update(ctx context.Context, entity *model.Genre) error {
-	return r.db.WithContext(ctx).Save(entity).Error
+func (r *GenreRepository) Update(ctx context.Context, entity *model.Genre) (*model.Genre, error) {
+	err := r.db.WithContext(ctx).Save(entity).Error
+	return entity, err
 }
 
 func (r *GenreRepository) Delete(ctx context.Context, id uint) error {
@@ -54,4 +56,22 @@ func (r *GenreRepository) GetById(ctx context.Context, id uint) (*model.Genre, e
 		return nil, err
 	}
 	return genre, nil
+}
+
+func (r *GenreRepository) GetByIds(ctx context.Context, ids []uint) ([]model.Genre, error) {
+    if len(ids) == 0 {
+        return []model.Genre{}, nil
+    }
+
+    var genres []model.Genre
+    
+    err := r.db.WithContext(ctx).
+        Where("id IN ?", ids). // Условие IN для выборки по списку
+        Find(&genres).Error
+    
+    if err != nil {
+        return nil, err
+    }
+    
+    return genres, nil
 }

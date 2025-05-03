@@ -19,12 +19,14 @@ func NewAlbumRepository(db *db.Db) *AlbumRepository {
 	}
 }
 
-func (r *AlbumRepository) Create(ctx context.Context, entity *model.Album) error {
-	return r.db.WithContext(ctx).Create(entity).Error
+func (r *AlbumRepository) Create(ctx context.Context, entity *model.Album) (*model.Album, error) {
+	err := r.db.WithContext(ctx).Create(entity).Error
+	return entity, err
 }
 
-func (r *AlbumRepository) Update(ctx context.Context, entity *model.Album) error {
-	return r.db.WithContext(ctx).Save(entity).Error
+func (r *AlbumRepository) Update(ctx context.Context, entity *model.Album) (*model.Album, error) {
+	err := r.db.WithContext(ctx).Save(entity).Error
+	return entity, err
 }
 
 func (r *AlbumRepository) Delete(ctx context.Context, id uint) error {

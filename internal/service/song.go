@@ -11,54 +11,99 @@ import (
 )
 
 type SongService struct {
-	songRepo repository.ISongRepository
-	albumRepo repository.IAlbumRepository
-	
+	songRepo      repository.ISongRepository
+	albumRepo     repository.IAlbumRepository
+	songGenreRepo repository.ISongGenreRepository
+	genreRepo     repository.IGenreRepository
+
 	logger *zap.SugaredLogger
 }
 
-func NewSongService(song repository.ISongRepository, album repository.IAlbumRepository, sugar *zap.SugaredLogger) *SongService {
+func NewSongService(
+	song repository.ISongRepository,
+	album repository.IAlbumRepository,
+	songGenre repository.ISongGenreRepository,
+	genre repository.IGenreRepository,
+	sugar *zap.SugaredLogger,
+) *SongService {
 	return &SongService{
-		songRepo: song,
-		albumRepo: album,
-		logger: sugar,
+		songRepo:      song,
+		albumRepo:     album,
+		songGenreRepo: songGenre,
+		genreRepo:     genre,
+		logger:        sugar,
 	}
 }
 
-func (s *SongService) AddSong(ctx context.Context, album *model.Album, song request.NewSongRequest) error {
+func (s *SongService) AddSong(ctx context.Context, album *model.Album, songReq request.NewSongRequest) error {
 	s.logger.Debugw("Attempting to add song",
-        "album_id", album.ID,
-        "artist_id", album.ArtistID,
-        "song_title", song.Title,
-        "duration", song.Duration,
-    )
-	if s.songRepo.ExistsInAlbum(ctx, album.ID, song.Title) {
-	    s.logger.Debugw("Song already exists in album",
-            "album_id", album.ID,
-            "song_title", song.Title,
-            "error", er.ErrSongExists.Error(),
-        )
+		"album_id", album.ID,
+		"artist_id", album.ArtistID,
+		"song_title", songReq.Title,
+		"duration", songReq.Duration,
+	)
+	if s.songRepo.ExistsInAlbum(ctx, album.ID, songReq.Title) {
+		s.logger.Debugw("Song already exists in album",
+			"album_id", album.ID,
+			"song_title", songReq.Title,
+			"error", er.ErrSongExists.Error(),
+		)
 		return er.ErrSongExists
 	}
+	
 
 	s.logger.Debug("Attempting to create song")
 
-	err := s.songRepo.Create(ctx, &model.Song{
-		Title: song.Title,
-		AlbumID: album.ID,
-		ArtistID: album.ArtistID,
+	song, err := s.songRepo.Create(ctx, &model.Song{
+		Title:      songReq.Title,
+		AlbumID:    album.ID,
+		ArtistID:   album.ArtistID,
 		SongGenres: nil,
-		Duration: song.Duration,
-		FilePath: song.FilePath,
+		Duration:   songReq.Duration,
+		FilePath:   songReq.FilePath,
 	})
 
 	if err != nil {
 		s.logger.Errorw("Failed to create song",
-            "album_id", album.ID,
-            "song_title", song.Title,
-            "error", err.Error(),
-        )
+			"album_id", album.ID,
+			"song_title", songReq.Title,
+			"error", err.Error(),
+		)
 		return &er.InternalError{Message: err.Error()}
+	}
+
+	err = s.addGenres(ctx, song.ID, songReq.Genres)
+	if err != nil {
+		s.logger.Errorw("Failed to connect genres",
+			"album_id", album.ID,
+			"song_title", songReq.Title,
+			"error", err.Error(),
+		)
+		return &er.InternalError{Message: err.Error()}
+	}
+
+	return nil
+}
+
+
+func (s *SongService) addGenres(ctx context.Context, songID uint, req []request.Genres) error {
+	var genreIds []uint
+	for _, genre := range req {
+		genreIds = append(genreIds, genre.GenreID)
+	}
+	genres, err := s.genreRepo.GetByIds(ctx, genreIds)
+	if err != nil {
+		return &er.InternalError{Message: err.Error()}
+	}
+
+	for _, genre := range genres {
+		_, err := s.songGenreRepo.Create(ctx, &model.SongGenre{
+			SongID: songID,
+			GenreID: genre.ID,
+		})
+		if err != nil {
+			return &er.InternalError{Message: err.Error()}
+		}
 	}
 	return nil
 }

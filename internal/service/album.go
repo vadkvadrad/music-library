@@ -46,7 +46,7 @@ func (s *AlbumService) NewAlbum(ctx *gin.Context, body request.NewAlbumRequest, 
 		}
 	}
 
-	err = s.albumRepository.Create(ctx, &model.Album{
+	_, err = s.albumRepository.Create(ctx, &model.Album{
 		Title:       body.Title,
 		ArtistID:    artist.ID,
 		Songs:       nil,

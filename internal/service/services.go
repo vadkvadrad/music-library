@@ -28,7 +28,7 @@ func NewServices(deps *Deps) *Services {
 		Auth:    NewAuthService(deps.Repositories.User, deps.Event),
 		Album:   NewAlbumService(deps.Repositories.Album, deps.Repositories.Artist),
 		Artist:  NewArtistService(deps.Repositories.Artist),
-		Song:    NewSongService(deps.Repositories.Song, deps.Repositories.Album, deps.Logger),
+		Song:    NewSongService(deps.Repositories.Song, deps.Repositories.Album, deps.Repositories.SongGenre, deps.Repositories.Genre, deps.Logger),
 		Genre:   NewGenreService(deps.Repositories.Genre, deps.Logger),
 		Search:  NewSearchService(deps.Repositories.Song, deps.Repositories.Album, deps.Repositories.Artist),
 		Profile: NewProfileService(deps.Repositories.Profile),

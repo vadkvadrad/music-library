@@ -19,12 +19,14 @@ func NewArtistRepository(db *db.Db) *ArtistRepository {
 	}
 }
 
-func (r *ArtistRepository) Create(ctx context.Context, entity *model.Artist) error {
-	return r.db.WithContext(ctx).Create(entity).Error
+func (r *ArtistRepository) Create(ctx context.Context, entity *model.Artist) (*model.Artist, error) {
+	err := r.db.WithContext(ctx).Create(entity).Error
+	return entity, err
 }
 
-func (r *ArtistRepository) Update(ctx context.Context, entity *model.Artist) error {
-	return r.db.WithContext(ctx).Save(entity).Error
+func (r *ArtistRepository) Update(ctx context.Context, entity *model.Artist) (*model.Artist, error) {
+	err := r.db.WithContext(ctx).Save(entity).Error
+	return entity, err
 }
 
 func (r *ArtistRepository) Delete(ctx context.Context, id uint) error {

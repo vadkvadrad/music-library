@@ -15,8 +15,8 @@ const (
 
 // Базовый интерфейс для всех репозиториев
 type Repository[T any] interface {
-	Create(ctx context.Context, entity *T) error
-	Update(ctx context.Context, entity *T) error
+	Create(ctx context.Context, entity *T) (*T, error)
+	Update(ctx context.Context, entity *T) (*T, error)
 	Delete(ctx context.Context, id uint) error
 }
 
@@ -80,18 +80,24 @@ type IGenreRepository interface {
 	Repository[model.Genre]
 
 	GetById(ctx context.Context, id uint) (*model.Genre, error)
+	GetByIds(ctx context.Context, ids []uint) ([]model.Genre, error)
 	IsExists(ctx context.Context, name string) bool
+}
+
+type ISongGenreRepository interface {
+	Repository[model.SongGenre]
 }
 
 type Repositories struct {
 	// User
 	User IUserRepository
 	// Music
-	Song   ISongRepository
-	Album  IAlbumRepository
-	Artist IArtistRepository
-	Lyrics ILyricsRepository
-	Genre  IGenreRepository
+	Song      ISongRepository
+	Album     IAlbumRepository
+	Artist    IArtistRepository
+	Lyrics    ILyricsRepository
+	Genre     IGenreRepository
+	SongGenre ISongGenreRepository
 	// Profile
 	Profile IProfileRepository
 }
@@ -101,10 +107,11 @@ func NewPostgresRepositories(db *db.Db) *Repositories {
 		// User
 		User: postgres.NewUserRepository(db),
 		// Music
-		Artist: postgres.NewArtistRepository(db),
-		Album:  postgres.NewAlbumRepository(db),
-		Song:   postgres.NewSongRepository(db),
-		Genre:  postgres.NewGenreRepository(db),
+		Artist:    postgres.NewArtistRepository(db),
+		Album:     postgres.NewAlbumRepository(db),
+		Song:      postgres.NewSongRepository(db),
+		Genre:     postgres.NewGenreRepository(db),
+		SongGenre: postgres.NewSongGenreRepository(db),
 		//Profile
 		Profile: postgres.NewProfileRepository(db),
 	}

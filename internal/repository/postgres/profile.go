@@ -17,12 +17,14 @@ func NewProfileRepository(db *db.Db) *ProfileRepository {
 }
 
 
-func (r *ProfileRepository) Create(ctx context.Context, entity *model.Profile) error {
-	return r.db.WithContext(ctx).Create(entity).Error
+func (r *ProfileRepository) Create(ctx context.Context, entity *model.Profile) (*model.Profile, error) {
+	err := r.db.WithContext(ctx).Create(entity).Error
+	return entity, err
 }
 
-func (r *ProfileRepository) Update(ctx context.Context, entity *model.Profile) error {
-	return r.db.WithContext(ctx).Save(entity).Error
+func (r *ProfileRepository) Update(ctx context.Context, entity *model.Profile) (*model.Profile, error) {
+	err := r.db.WithContext(ctx).Save(entity).Error
+	return entity, err
 }
 
 func (r *ProfileRepository) Delete(ctx context.Context, id uint) error {

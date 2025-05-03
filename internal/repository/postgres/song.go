@@ -17,12 +17,14 @@ func NewSongRepository(db *db.Db) *SongRepository {
 	}
 }
 
-func (r *SongRepository) Create(ctx context.Context, entity *model.Song) error {
-	return r.db.WithContext(ctx).Create(entity).Error
+func (r *SongRepository) Create(ctx context.Context, entity *model.Song) (*model.Song, error) {
+	err := r.db.WithContext(ctx).Create(entity).Error
+	return entity, err
 }
 
-func (r *SongRepository) Update(ctx context.Context, entity *model.Song) error {
-	return r.db.WithContext(ctx).Save(entity).Error
+func (r *SongRepository) Update(ctx context.Context, entity *model.Song) (*model.Song, error) {
+	err := r.db.WithContext(ctx).Save(entity).Error
+	return entity, err
 }
 
 func (r *SongRepository) Delete(ctx context.Context, id uint) error {

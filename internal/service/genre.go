@@ -33,7 +33,7 @@ func (s *GenreService) NewGenre(ctx *gin.Context, genreName string) error {
 		return er.ErrGenreExists
 	}
 
-	err := s.genreRepo.Create(ctx, &model.Genre{
+	_, err := s.genreRepo.Create(ctx, &model.Genre{
 		Name: genreName,
 		SongGenres: nil,
 	})
@@ -72,7 +72,7 @@ func (s *GenreService) UpdateGenre(ctx *gin.Context, id uint, nameToUpdate strin
 	}
 
 	genre.Name = nameToUpdate
-	err = s.genreRepo.Update(ctx, genre)
+	_, err = s.genreRepo.Update(ctx, genre)
 	if err != nil {
 		s.logger.Errorw("Error while updating genre",
 			"error type", "internal",
