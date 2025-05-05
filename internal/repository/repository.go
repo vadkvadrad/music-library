@@ -88,6 +88,12 @@ type ISongGenreRepository interface {
 	Repository[model.SongGenre]
 }
 
+type IPermissionRepository interface {
+	Repository[model.ResourcePermission]
+
+	HasPermission(userID, resourceID uint, resourceType model.Resource, permission model.Permission) bool
+}
+
 type Repositories struct {
 	// User
 	User IUserRepository
@@ -100,6 +106,8 @@ type Repositories struct {
 	SongGenre ISongGenreRepository
 	// Profile
 	Profile IProfileRepository
+	// Permission
+	Permission IPermissionRepository
 }
 
 func NewPostgresRepositories(db *db.Db) *Repositories {
@@ -115,5 +123,7 @@ func NewPostgresRepositories(db *db.Db) *Repositories {
 		Lyrics:    postgres.NewLyricsRepository(db),
 		//Profile
 		Profile: postgres.NewProfileRepository(db),
+		// Permission
+		Permission: postgres.NewPermissionRepository(db),
 	}
 }

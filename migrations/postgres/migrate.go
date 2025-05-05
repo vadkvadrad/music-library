@@ -24,5 +24,7 @@ func MigrateTables(db *gorm.DB) error {
 		&model.Collection{},
 		&model.CollectionItem{},
 		&model.History{},
+		// Permission
+		&model.ResourcePermission{},
 	)
 }
