@@ -72,14 +72,14 @@ func (r *SongRepository) ExistsInAlbum(ctx context.Context, albumID uint, songNa
 
 
 func (r *SongRepository) GetByID(ctx context.Context, id uint) (*model.Song, error) {
-	return nil, nil
+	panic("SongRepository Implement GetByID")
 }
 func (r *SongRepository) GetByArtistID(ctx context.Context, artistID uint, sort string, limit, offset int) ([]model.Song, int64, error){
-	return nil, 0, nil
+	panic("SongRepository Implement GetByArtistID")
 }
 func (r *SongRepository) GetByAlbumID(ctx context.Context, albumID uint, sort string, limit, offset int) ([]model.Song, int64, error){
-	return nil, 0, nil
+	panic("SongRepository Implement GetByAlbumID")
 }
 func (r *SongRepository) GetFullInfo(ctx context.Context, id uint) (*model.Song, *model.Artist, *model.Album, error) {
-	return nil, nil, nil, nil
+	panic("SongRepository Implement GetFullInfo")
 }

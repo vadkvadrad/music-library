@@ -66,12 +66,6 @@ func (h *Handler) AddSong() gin.HandlerFunc {
 			return
 		}
 
-		h.logger.Infow("Adding new permission",
-            "user id", user.Id,
-            "song id", song.ID,
-            "permission", model.EditPermission,
-        )
-
 		// Добавить разрешение для песен
 		err = h.services.Permission.AddPermission(ctx, user.Id, song.ID, model.SongResource, model.EditPermission)
 		if err != nil {

@@ -8,6 +8,7 @@ func DropTables(db *gorm.DB) error {
     tables := []string{
         "song_genres",
         "genres",
+        "couplets",
         "lyrics",
         "songs",
         "albums",
