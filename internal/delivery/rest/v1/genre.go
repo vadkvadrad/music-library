@@ -59,7 +59,7 @@ func (h *Handler) UpdateGenre() gin.HandlerFunc {
 			return
 		}
 
-		err = h.services.Genre.UpdateGenre(ctx,uint(id), body.NewName)
+		err = h.services.Genre.UpdateGenre(ctx, uint(id), body.NewName)
 		if err != nil {
 			ctx.Error(err)
 			return

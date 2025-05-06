@@ -4,6 +4,7 @@ import (
 	"music-lib/internal/dto/request"
 	"music-lib/internal/dto/response"
 	"music-lib/internal/middleware"
+	"music-lib/internal/model"
 	"music-lib/pkg/er"
 	"net/http"
 	"strconv"
@@ -59,7 +60,20 @@ func (h *Handler) AddSong() gin.HandlerFunc {
             "artist_id", album.ArtistID,
         )
 
-		err = h.services.Song.AddSong(ctx, album, body)
+		song, err := h.services.Song.AddSong(ctx, album, body)
+		if err != nil {
+			ctx.Error(err)
+			return
+		}
+
+		h.logger.Infow("Adding new permission",
+            "user id", user.Id,
+            "song id", song.ID,
+            "permission", model.EditPermission,
+        )
+
+		// Добавить разрешение для песен
+		err = h.services.Permission.AddPermission(ctx, user.Id, song.ID, model.SongResource, model.EditPermission)
 		if err != nil {
 			ctx.Error(err)
 			return

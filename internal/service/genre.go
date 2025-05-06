@@ -17,7 +17,9 @@ type GenreService struct {
 	logger *zap.SugaredLogger
 }
 
-func NewGenreService(genre repository.IGenreRepository, sugar *zap.SugaredLogger) *GenreService {
+func NewGenreService(
+	genre repository.IGenreRepository,
+	sugar *zap.SugaredLogger,) *GenreService {
 	return &GenreService{
 		genreRepo: genre,
 		logger: sugar,

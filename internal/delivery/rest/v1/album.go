@@ -4,6 +4,7 @@ import (
 	"music-lib/internal/dto/request"
 	"music-lib/internal/dto/response"
 	"music-lib/internal/middleware"
+	"music-lib/internal/model"
 	"music-lib/pkg/er"
 	"net/http"
 
@@ -37,11 +38,14 @@ func (h *Handler) NewAlbum() gin.HandlerFunc {
 			return
 		}
 
-		err := h.services.Album.NewAlbum(ctx, body, user.Id)
+		album, err := h.services.Album.NewAlbum(ctx, body, user.Id)
 		if err != nil {
 			ctx.Error(err)
 			return
 		}
+
+		// Добавление разрешения на редактирование
+		h.services.Permission.AddPermission(ctx, user.Id, album.ID, model.AlbumResource, model.EditPermission)
 
 		ctx.JSON(http.StatusCreated, nil)
 	}

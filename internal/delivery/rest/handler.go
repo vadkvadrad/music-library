@@ -32,8 +32,6 @@ func NewHandler(services *service.Services, conf *config.Config, sugar *zap.Suga
 }
 
 func (h *Handler) Init(conf *config.Config) *gin.Engine {
-	//logger, _ := zap.NewProduction()
-
 	errorHandler := er.NewErrorHandler(&er.ErrorHandlerConfig{
 		LogErrors:    true,
 		ShowInternal: true,

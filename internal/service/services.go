@@ -14,13 +14,14 @@ type Deps struct {
 }
 
 type Services struct {
-	Auth    *AuthService
-	Album   *AlbumService
-	Artist  *ArtistService
-	Song    *SongService
-	Genre   *GenreService
-	Search  *SearchService
-	Profile *ProfileService
+	Auth       *AuthService
+	Album      *AlbumService
+	Artist     *ArtistService
+	Song       *SongService
+	Genre      *GenreService
+	Search     *SearchService
+	Profile    *ProfileService
+	Permission *PermissionService
 }
 
 func NewServices(deps *Deps) *Services {
@@ -38,5 +39,6 @@ func NewServices(deps *Deps) *Services {
 		Genre:   NewGenreService(deps.Repositories.Genre, deps.Logger),
 		Search:  NewSearchService(deps.Repositories.Song, deps.Repositories.Album, deps.Repositories.Artist),
 		Profile: NewProfileService(deps.Repositories.Profile),
+		Permission: NewPermissionService(deps.Repositories.Permission),
 	}
 }

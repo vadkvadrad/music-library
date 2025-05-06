@@ -26,27 +26,27 @@ func NewAlbumService(album repository.IAlbumRepository, artist repository.IArtis
 	}
 }
 
-func (s *AlbumService) NewAlbum(ctx *gin.Context, body request.NewAlbumRequest, userID uint) error {
+func (s *AlbumService) NewAlbum(ctx *gin.Context, body request.NewAlbumRequest, userID uint) (*model.Album, error) {
 	artist, err := s.artistRepository.GetByUserID(ctx, userID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return er.ErrArtistNotExists
+			return nil, er.ErrArtistNotExists
 		}
-		return &er.InternalError{Message: fmt.Sprintf("NewAlbum: can't get artist: %s", err.Error())}
+		return nil, &er.InternalError{Message: fmt.Sprintf("NewAlbum: can't get artist: %s", err.Error())}
 	}
 
 	formationDate, err := time.Parse("2006-01-02", body.ReleaseDate)
 	if err != nil {
-		return er.ErrDateFormat
+		return nil, er.ErrDateFormat
 	}
 
 	for _, album := range artist.Albums {
 		if album.Title == body.Title {
-			return er.ErrAlbumExists
+			return nil, er.ErrAlbumExists
 		}
 	}
 
-	_, err = s.albumRepository.Create(ctx, &model.Album{
+	album, err := s.albumRepository.Create(ctx, &model.Album{
 		Title:       body.Title,
 		ArtistID:    artist.ID,
 		Songs:       nil,
@@ -55,9 +55,9 @@ func (s *AlbumService) NewAlbum(ctx *gin.Context, body request.NewAlbumRequest, 
 	})
 
 	if err != nil {
-		return &er.InternalError{Message: fmt.Sprintf("NewAlbum: can't create album: %s", err.Error())}
+		return nil, &er.InternalError{Message: fmt.Sprintf("NewAlbum: can't create album: %s", err.Error())}
 	}
-	return nil
+	return album, nil
 }
 
 func (s *AlbumService) GetAlbum(ctx *gin.Context, strID string) (*model.Album, error) {

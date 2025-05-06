@@ -4,6 +4,7 @@ import (
 	"music-lib/internal/dto/request"
 	"music-lib/internal/dto/response"
 	"music-lib/internal/middleware"
+	"music-lib/internal/model"
 	"music-lib/pkg/er"
 	"net/http"
 
@@ -36,7 +37,12 @@ func (h *Handler) NewArtist() gin.HandlerFunc {
 			return
 		}
 
-		err := h.services.Artist.NewArtist(ctx, body, user.Id)
+		artist, err := h.services.Artist.NewArtist(ctx, body, user.Id)
+		if err != nil {
+			ctx.Error(err)
+		}
+
+		err = h.services.Permission.AddPermission(ctx, user.Id, artist.ID, model.ArtistResource, model.EditPermission)
 		if err != nil {
 			ctx.Error(err)
 		}

@@ -23,29 +23,28 @@ func NewArtistService(artist repository.IArtistRepository) *ArtistService {
 	}
 }
 
-func (s *ArtistService) NewArtist(ctx *gin.Context, body request.NewArtistRequest, userID uint) error {
+func (s *ArtistService) NewArtist(ctx *gin.Context, body request.NewArtistRequest, userID uint) (*model.Artist, error) {
 	_, err := s.artistRepository.GetByUserID(ctx, userID)
 	if err == nil {
-		return er.ErrArtistLinked
+		return nil, er.ErrArtistLinked
 	}
 
 	exists := s.artistRepository.IsExists(ctx, body.ArtistName)
 	if exists {
-		return er.ErrArtistExists
+		return nil, er.ErrArtistExists
 	}
 
 	formationDate, err := time.Parse("2006-01-02", body.FormationYear)
 	if err != nil {
-		return er.ErrDateFormat
+		return nil, er.ErrDateFormat
 	}
 
-	_, err = s.artistRepository.Create(ctx, &model.Artist{
+	return s.artistRepository.Create(ctx, &model.Artist{
 		Name:          body.ArtistName,
 		Description:   body.Description,
 		FormationYear: formationDate,
 		UserID:        userID,
 	})
-	return err
 }
 
 

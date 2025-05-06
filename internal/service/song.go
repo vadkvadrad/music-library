@@ -11,11 +11,11 @@ import (
 )
 
 type SongService struct {
-	songRepo      repository.ISongRepository
-	albumRepo     repository.IAlbumRepository
-	songGenreRepo repository.ISongGenreRepository
-	genreRepo     repository.IGenreRepository
-	lyricsRepo repository.ILyricsRepository
+	songRepo       repository.ISongRepository
+	albumRepo      repository.IAlbumRepository
+	songGenreRepo  repository.ISongGenreRepository
+	genreRepo      repository.IGenreRepository
+	lyricsRepo     repository.ILyricsRepository
 
 	logger *zap.SugaredLogger
 }
@@ -33,12 +33,12 @@ func NewSongService(
 		albumRepo:     album,
 		songGenreRepo: songGenre,
 		genreRepo:     genre,
-		lyricsRepo: lyrics,
+		lyricsRepo:    lyrics,
 		logger:        sugar,
 	}
 }
 
-func (s *SongService) AddSong(ctx context.Context, album *model.Album, songReq request.NewSongRequest) error {
+func (s *SongService) AddSong(ctx context.Context, album *model.Album, songReq request.NewSongRequest) (*model.Song, error) {
 	s.logger.Debugw("Attempting to add song",
 		"album_id", album.ID,
 		"artist_id", album.ArtistID,
@@ -51,7 +51,7 @@ func (s *SongService) AddSong(ctx context.Context, album *model.Album, songReq r
 			"song_title", songReq.Title,
 			"error", er.ErrSongExists.Error(),
 		)
-		return er.ErrSongExists
+		return nil,  er.ErrSongExists
 	}
 
 	s.logger.Debug("Attempting to create song")
@@ -71,7 +71,7 @@ func (s *SongService) AddSong(ctx context.Context, album *model.Album, songReq r
 			"song_title", songReq.Title,
 			"error", err.Error(),
 		)
-		return &er.InternalError{Message: err.Error()}
+		return nil, &er.InternalError{Message: err.Error()}
 	}
 
 	s.logger.Debug("Attempting to add genres")
@@ -82,7 +82,7 @@ func (s *SongService) AddSong(ctx context.Context, album *model.Album, songReq r
 			"song_title", songReq.Title,
 			"error", err.Error(),
 		)
-		return &er.InternalError{Message: err.Error()}
+		return nil, &er.InternalError{Message: err.Error()}
 	}
 
 	s.logger.Debug("Attempting to add lyrics")
@@ -93,15 +93,13 @@ func (s *SongService) AddSong(ctx context.Context, album *model.Album, songReq r
 			"song_title", songReq.Title,
 			"error", err.Error(),
 		)
-		return &er.InternalError{Message: err.Error()}
+		return nil, &er.InternalError{Message: err.Error()}
 	}
-
 
 	s.logger.Debug("Song created successfully")
 
-	return nil
+	return song, nil
 }
-
 
 func (s *SongService) addGenres(ctx context.Context, songID uint, req []request.Genres) error {
 	var genreIds []uint
@@ -115,7 +113,7 @@ func (s *SongService) addGenres(ctx context.Context, songID uint, req []request.
 
 	for _, genre := range genres {
 		_, err := s.songGenreRepo.Create(ctx, &model.SongGenre{
-			SongID: songID,
+			SongID:  songID,
 			GenreID: genre.ID,
 		})
 		if err != nil {
@@ -125,7 +123,6 @@ func (s *SongService) addGenres(ctx context.Context, songID uint, req []request.
 	return nil
 }
 
-
 func (s *SongService) addLyrics(ctx context.Context, songID uint, req request.AddLyrics) error {
 	var lyrics model.Lyrics
 	lyrics.SongID = songID
@@ -133,8 +130,8 @@ func (s *SongService) addLyrics(ctx context.Context, songID uint, req request.Ad
 	for number, couplet := range req.Text {
 		lyrics.Couplets = append(lyrics.Couplets, model.Couplet{
 			LyricsID: songID,
-			Number: uint(number),
-			Text: couplet.Text,
+			Number:   uint(number),
+			Text:     couplet.Text,
 		})
 	}
 
