@@ -42,11 +42,13 @@ func (h *Handler) NewArtist() gin.HandlerFunc {
 		artist, err := h.services.Artist.NewArtist(ctx, body, user.Id)
 		if err != nil {
 			ctx.Error(err)
+			return
 		}
 
 		err = h.services.Permission.AddPermission(ctx, user.Id, artist.ID, model.ArtistResource, model.EditPermission)
 		if err != nil {
 			ctx.Error(err)
+			return
 		}
 
 		ctx.JSON(http.StatusCreated, response.ArtistDTO{
@@ -97,6 +99,7 @@ func (h *Handler) UpdateArtist() gin.HandlerFunc {
 		id, err := strconv.Atoi(strID)
 		if err != nil {
 			ctx.Error(&er.ValidationError{Message: err.Error()})
+			return
 		}
 
 		var body request.UpdateArtistRequest
@@ -120,11 +123,13 @@ func (h *Handler) UpdateArtist() gin.HandlerFunc {
 
 		if !h.services.Permission.HasPermission(user.Id, uint(id), model.ArtistResource, model.EditPermission) {
 			ctx.Error(er.ErrWrongUserCredentials)
+			return
 		}
 
 		artist, err := h.services.Artist.UpdateArtist(ctx, uint(id), body)
 		if err != nil {
 			ctx.Error(err)
+			return		
 		}
 
 		ctx.JSON(http.StatusOK, response.ArtistDTO{

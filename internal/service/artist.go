@@ -28,27 +28,40 @@ func NewArtistService(artist repository.IArtistRepository, log *zap.SugaredLogge
 }
 
 func (s *ArtistService) NewArtist(ctx *gin.Context, body request.NewArtistRequest, userID uint) (*model.Artist, error) {
+	s.logger.Debugw("Attempting to find artist")
 	_, err := s.artistRepository.GetByUserID(ctx, userID)
 	if err == nil {
 		return nil, er.ErrArtistLinked
 	}
 
+	s.logger.Debugw("Checking if artist already exists")
 	exists := s.artistRepository.IsExists(ctx, body.ArtistName)
 	if exists {
 		return nil, er.ErrArtistExists
 	}
 
+	s.logger.Debugw("Parsing date")
 	formationDate, err := time.Parse("2006-01-02", body.FormationYear)
 	if err != nil {
 		return nil, er.ErrDateFormat
 	}
 
-	return s.artistRepository.Create(ctx, &model.Artist{
+	artist, err :=  s.artistRepository.Create(ctx, &model.Artist{
 		Name:          body.ArtistName,
 		Description:   body.Description,
 		FormationYear: formationDate,
 		UserID:        userID,
 	})
+	if err != nil {
+		return nil, &er.InternalError{Message: err.Error()}
+	}
+	s.logger.Debugw("Artist created successfully",
+		"id", artist.ID,
+		"Name", artist.Name,
+		"user id", artist.UserID,
+	)
+
+	return artist, nil
 }
 
 
