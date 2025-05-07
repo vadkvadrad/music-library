@@ -106,6 +106,10 @@ var (
 		Message: "Album does not exist",
 	}
 
+	ErrSongNotExists = &NotFoundError{
+		Message: "Song does not exists",
+	}
+
 	ErrGenreNotExists = &NotFoundError{
 		Message: "This genre does not exists",
 	}

@@ -129,6 +129,7 @@ func convertToDTO(t string, data any) any {
 			dtos = append(dtos, response.SongDTO{
 				ID: song.ID,
 				Title: song.Title,
+				AlbumID: song.AlbumID,
 				Duration: song.Duration,
 				FilePath: song.FilePath,
 			})

@@ -35,16 +35,22 @@ type AlbumDTO struct {
 
 // Для ответов с деталями песни
 type SongDTO struct {
-	ID       uint   `json:"id"`
-	Title    string `json:"title"`
-	Duration int    `json:"duration"`
-	FilePath string `json:"file_path"` // или URL для скачивания
+	ID       uint      `json:"id"`
+	Title    string    `json:"title"`
+	AlbumID  uint      `json:"album_id"`
+	Duration int       `json:"duration"`
+	FilePath string    `json:"file_path"` // или URL для скачивания
+	Lyrics   LyricsDTO `json:"lyrics,omitempty"`
 }
 
 // Для ответов с текстом песни
 type LyricsDTO struct {
-	SongID uint   `json:"song_id"`
-	Text   string `json:"text"`
+	Couplets []CoupletDTO `json:"text"`
+}
+
+type CoupletDTO struct {
+	Number  uint   `json:"number"`
+	Couplet string `json:"couplet"`
 }
 
 type LoginResponse struct {

@@ -14,6 +14,7 @@ import (
 
 func (h *Handler) initSongRoutes(api *gin.RouterGroup) {
 	song := api.Group("/song")
+	song.GET("/:id", h.GetSong())
 	song.Use(middleware.AuthMiddleware(h.config))
 	{
 		song.POST("/:album_id", h.AddSong())
@@ -77,6 +78,46 @@ func (h *Handler) AddSong() gin.HandlerFunc {
 			AlbumID: album.ID,
 			AlbumName: album.Title,
 			ArtistID: album.ArtistID,
+		})
+	}
+}
+
+
+func (h *Handler) GetSong() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		id, err := strconv.Atoi(ctx.Param("id"))
+		if err != nil {
+			h.logger.Debug("Invalid ID format",
+                "received", ctx.Param("id"),
+                "error", err,
+            )
+			ctx.Error(&er.ValidationError{Message: err.Error()})
+			return
+		}
+
+		song, err := h.services.Song.GetSong(ctx, uint(id))
+		if err != nil {
+			ctx.Error(err)
+			return
+		}
+
+		var couplets []response.CoupletDTO
+		for _, couplet := range song.Lyrics.Couplets {
+			couplets = append(couplets, response.CoupletDTO{
+				Number: couplet.Number,
+				Couplet: couplet.Text,
+			})
+		}
+
+		ctx.JSON(http.StatusOK, response.SongDTO{
+			ID: song.ID,
+			Title: song.Title,
+			AlbumID: song.AlbumID,
+			Duration: song.Duration,
+			FilePath: song.FilePath,
+			Lyrics: response.LyricsDTO{
+				Couplets: couplets,
+			},
 		})
 	}
 }

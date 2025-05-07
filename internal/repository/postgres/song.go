@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"music-lib/internal/model"
 	"music-lib/pkg/db"
+
+	"gorm.io/gorm"
 )
 
 type SongRepository struct {
@@ -72,8 +74,19 @@ func (r *SongRepository) ExistsInAlbum(ctx context.Context, albumID uint, songNa
 
 
 func (r *SongRepository) GetByID(ctx context.Context, id uint) (*model.Song, error) {
-	panic("SongRepository Implement GetByID")
+    var song *model.Song
+    err := r.db.WithContext(ctx).
+        Preload("Lyrics.Couplets", func(db *gorm.DB) *gorm.DB {
+            return db.Order("couplets.number ASC")
+        }).
+        First(&song, id).Error
+
+    if err != nil {
+        return nil, err
+    }
+    return song, nil
 }
+
 func (r *SongRepository) GetByArtistID(ctx context.Context, artistID uint, sort string, limit, offset int) ([]model.Song, int64, error){
 	panic("SongRepository Implement GetByArtistID")
 }

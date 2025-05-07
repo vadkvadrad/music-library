@@ -37,7 +37,7 @@ type Song struct {
 	SongGenres []SongGenre `gorm:"foreignKey:SongID"`
 	Duration   int
 	FilePath   string
-	Lyrics     Lyrics `gorm:"foreignKey:SongID;constraint:OnDelete:CASCADE"`
+	Lyrics     Lyrics `gorm:"foreignKey:SongID;references:ID;constraint:OnDelete:CASCADE"`
 	CreatedAt  time.Time
 	UpdatedAt  time.Time
 }
@@ -45,7 +45,7 @@ type Song struct {
 // Текст песни
 type Lyrics struct {
 	SongID    uint      `gorm:"primaryKey;autoIncrement:false"`
-	Couplets  []Couplet `gorm:"foreignKey:LyricsID"`
+	Couplets  []Couplet `gorm:"foreignKey:LyricsID;constraint:OnDelete:CASCADE"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }

@@ -2,12 +2,14 @@ package service
 
 import (
 	"context"
+	"errors"
 	"music-lib/internal/dto/request"
 	"music-lib/internal/model"
 	"music-lib/internal/repository"
 	"music-lib/pkg/er"
 
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 )
 
 type SongService struct {
@@ -136,4 +138,17 @@ func (s *SongService) addLyrics(ctx context.Context, songID uint, req request.Ad
 	}
 
 	return s.lyricsRepo.Upsert(ctx, &lyrics)
+}
+
+
+func (s *SongService) GetSong(ctx context.Context, songID uint) (*model.Song, error) {
+	song, err := s.songRepo.GetByID(ctx, songID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, er.ErrSongNotExists
+		}
+		return nil, &er.InternalError{Message: err.Error()}
+	}
+
+	return song, nil
 }
