@@ -44,7 +44,7 @@ func (h *Handler) AddSong() gin.HandlerFunc {
 			h.logger.Debug("User credentials not found",
                 "error", er.ErrWrongUserCredentials.Error(),
             )
-			ctx.Error(er.ErrWrongUserCredentials)
+			ctx.Error(er.ErrNotAuthorized)
 			return
 		}
 

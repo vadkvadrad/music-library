@@ -7,6 +7,7 @@ import (
 	"music-lib/internal/model"
 	"music-lib/pkg/er"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,6 +20,7 @@ func (h *Handler) initArtistRoutes(api *gin.RouterGroup) {
 	artist.Use(middleware.AuthMiddleware(h.config))
 	{
 		artist.POST("", h.NewArtist())
+		artist.PATCH("/:id", h.UpdateArtist())
 	}
 }
 
@@ -33,7 +35,7 @@ func (h *Handler) NewArtist() gin.HandlerFunc {
 
 		user, ok := middleware.GetUserData(ctx)
 		if !ok {
-			ctx.Error(er.ErrWrongUserCredentials)
+			ctx.Error(er.ErrNotAuthorized)
 			return
 		}
 
@@ -46,6 +48,13 @@ func (h *Handler) NewArtist() gin.HandlerFunc {
 		if err != nil {
 			ctx.Error(err)
 		}
+
+		ctx.JSON(http.StatusCreated, response.ArtistDTO{
+			ID: artist.ID,
+			Name: artist.Name,
+			Description: artist.Description,
+			FormationYear: artist.FormationYear,
+		})
 	}
 }
 
@@ -77,6 +86,52 @@ func (h *Handler) GetArtist() gin.HandlerFunc {
 			Description: artist.Description,
 			FormationYear: artist.FormationYear,
 			Albums: albums,
+		})
+	}
+}
+
+
+func (h *Handler) UpdateArtist() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		strID := ctx.Param("id")
+		id, err := strconv.Atoi(strID)
+		if err != nil {
+			ctx.Error(&er.ValidationError{Message: err.Error()})
+		}
+
+		var body request.UpdateArtistRequest
+		if err := ctx.ShouldBindJSON(&body); err != nil {
+			ctx.Error(err)
+			return
+		}
+
+		h.logger.Infow("Updating artist", 
+			"id", id,
+			"name to update", body.ArtistName,
+			"description to update", body.Description,
+			"formation year to update", body.FormationYear,
+		)	
+
+		user, ok := middleware.GetUserData(ctx)
+		if !ok {
+			ctx.Error(er.ErrNotAuthorized)
+			return
+		}
+
+		if !h.services.Permission.HasPermission(user.Id, uint(id), model.ArtistResource, model.EditPermission) {
+			ctx.Error(er.ErrWrongUserCredentials)
+		}
+
+		artist, err := h.services.Artist.UpdateArtist(ctx, uint(id), body)
+		if err != nil {
+			ctx.Error(err)
+		}
+
+		ctx.JSON(http.StatusOK, response.ArtistDTO{
+			ID: artist.ID,
+			Name: artist.Name,
+			Description: artist.Description,
+			FormationYear: artist.FormationYear,
 		})
 	}
 }

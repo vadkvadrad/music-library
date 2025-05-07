@@ -21,26 +21,26 @@ func (h *Handler) initProfileRoutes(api *gin.RouterGroup) {
 
 func (h *Handler) NewProfile() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-			body := request.NewProfileRequest{}
+		body := request.NewProfileRequest{}
 
-			if err := ctx.ShouldBindJSON(&body); err != nil {
-				ctx.Error(er.ValidationError{Message: err.Error()})
-				return
-			}
+		if err := ctx.ShouldBindJSON(&body); err != nil {
+			ctx.Error(er.ValidationError{Message: err.Error()})
+			return
+		}
 
-			user, ok := middleware.GetUserData(ctx)
-			if !ok {
-				ctx.Error(er.ErrWrongUserCredentials)
-				return
-			}
+		user, ok := middleware.GetUserData(ctx)
+		if !ok {
+			ctx.Error(er.ErrNotAuthorized)
+			return
+		}
 
-			err := h.services.Profile.NewProfile(ctx, body, user.Id)
-			if err != nil {
-				ctx.Error(err)
-				return
-			}
+		err := h.services.Profile.NewProfile(ctx, body, user.Id)
+		if err != nil {
+			ctx.Error(err)
+			return
+		}
 
-			ctx.JSON(http.StatusCreated, nil)
+		ctx.JSON(http.StatusCreated, nil)
 	}
 }
 
@@ -49,7 +49,7 @@ func (h *Handler) GetProfile() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		user, ok := middleware.GetUserData(ctx)
 		if !ok {
-			ctx.Error(er.ErrWrongUserCredentials)
+			ctx.Error(er.ErrNotAuthorized)
 			return
 		}
 

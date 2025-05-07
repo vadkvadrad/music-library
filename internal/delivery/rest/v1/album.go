@@ -34,7 +34,7 @@ func (h *Handler) NewAlbum() gin.HandlerFunc {
 
 		user, ok := middleware.GetUserData(ctx)
 		if !ok {
-			ctx.Error(er.ErrWrongUserCredentials)
+			ctx.Error(er.ErrNotAuthorized)
 			return
 		}
 

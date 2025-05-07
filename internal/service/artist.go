@@ -10,16 +10,20 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
 type ArtistService struct {
 	artistRepository repository.IArtistRepository
+
+	logger *zap.SugaredLogger
 }
 
-func NewArtistService(artist repository.IArtistRepository) *ArtistService {
+func NewArtistService(artist repository.IArtistRepository, log *zap.SugaredLogger) *ArtistService {
 	return &ArtistService{
 		artistRepository: artist,
+		logger: log,
 	}
 }
 
@@ -63,4 +67,41 @@ func (s *ArtistService) GetArtist(ctx *gin.Context, strID string) (*model.Artist
 	}
 
 	return artist, nil
+}
+
+
+func (s *ArtistService) UpdateArtist(ctx *gin.Context, id uint, req request.UpdateArtistRequest) (*model.Artist, error) {
+	s.logger.Debugw("Attempting to get artist",
+		"id", id,
+	)
+	artist, err := s.artistRepository.GetByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, er.ErrArtistNotExists
+		}
+		return nil, &er.InternalError{Message: err.Error()}
+	}
+
+	var formationDate time.Time
+	if req.FormationYear != ""{
+		formationDate, err = time.Parse("2006-01-02", req.FormationYear)
+		if err != nil {
+			return nil, er.ErrDateFormat
+		}
+	}
+	
+	s.logger.Debugw("Changing artist params",
+		"Previous name", artist.Name,
+		"Updated name", req.ArtistName,
+		"Previous description", artist.Description,
+		"Updated description", req.Description,
+		"Previous formation year", artist.FormationYear,
+		"Updated formation year", req.FormationYear,
+	)
+	artist.Name = req.ArtistName
+	artist.Description = req.Description
+	artist.FormationYear = formationDate
+
+	s.logger.Debug("Artist updated successfully")
+	return s.artistRepository.Update(ctx, artist)
 }

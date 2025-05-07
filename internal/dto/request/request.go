@@ -27,6 +27,12 @@ type NewArtistRequest struct {
 	FormationYear string `json:"formation_year" example:"2001-02-16"` // Формат: "YYYY-MM-DD"
 }
 
+type UpdateArtistRequest struct {
+	ArtistName    string `json:"artist_name,omitempty" example:"Imagine Dragons"`
+	Description   string `json:"description,omitempty" example:"We are team Imagine Dragons, writing songs for you"`
+	FormationYear string `json:"formation_year,omitempty" example:"2001-02-16"` // Формат: "YYYY-MM-DD"
+}
+
 type NewAlbumRequest struct {
 	Title       string `json:"title" binding:"required"`
 	ReleaseDate string `json:"release_date" binding:"required"`

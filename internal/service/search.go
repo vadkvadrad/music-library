@@ -37,7 +37,7 @@ func (s *SearchService) Search(
 	limit int,
 	offset int,
 ) any {
-	var result response.SearchResult
+	result := make(response.SearchResult)
 	var wg sync.WaitGroup
 	var mu sync.Mutex
 
@@ -47,7 +47,7 @@ func (s *SearchService) Search(
 		go func(t string) {
 			defer wg.Done()
 			
-			var data interface{}
+			var data any
 			var total int64
 			var err error
 
@@ -81,48 +81,59 @@ func (s *SearchService) Search(
 func convertToDTO(t string, data any) any {
 	switch t {
 	case "artist":
-		artist, ok := data.(model.Artist)
+		artists, ok := data.([]model.Artist)
 		if !ok {
 			return response.SearchErrorResponse{
 				Error: fmt.Errorf("can't convert to artist model"),
 				Tip: "check the validity of Artist model",
 			}
 		}
-		return response.ArtistDTO{
-			ID: artist.ID,
-			Name: artist.Name,
-			Description: artist.Description,
-			FormationYear: artist.FormationYear,
-			Albums: nil,
+		var dtos []response.ArtistDTO
+		for _, artist := range artists {
+			dtos = append(dtos, response.ArtistDTO{
+				ID:            artist.ID,
+				Name:          artist.Name,
+				Description:   artist.Description,
+				FormationYear: artist.FormationYear,
+			})
 		}
+        return dtos
 	case "album":
-		album, ok := data.(model.Album)
+		albums, ok := data.([]model.Album)
 		if !ok {
 			return response.SearchErrorResponse{
 				Error: fmt.Errorf("can't convert to album model"),
 				Tip: "check the validity of Album model ",
 			}
 		}
-		return response.AlbumDTO{
-			ID: album.ID,
-			Title: album.Title,
-			ReleaseDate: album.ReleaseDate,
-			CoverArtURL: album.CoverArtURL,
+		var dtos []response.AlbumDTO
+		for _, album := range albums {
+			dtos = append(dtos, response.AlbumDTO{
+				ID: album.ID,
+				Title: album.Title,
+				ReleaseDate: album.ReleaseDate,
+				CoverArtURL: album.CoverArtURL,
+			})
 		}
+		return dtos
 	case "song":
-		song, ok := data.(model.Song)
+		songs, ok := data.([]model.Song)
 		if !ok {
 			return response.SearchErrorResponse{
 				Error: fmt.Errorf("can't convert to song model"),
 				Tip: "check the validity of Song model ",
 			}
 		}
-		return response.SongDTO{
-			ID: song.ID,
-			Title: song.Title,
-			Duration: song.Duration,
-			FilePath: song.FilePath,
+		var dtos []response.SongDTO
+		for _, song := range songs {
+			dtos = append(dtos, response.SongDTO{
+				ID: song.ID,
+				Title: song.Title,
+				Duration: song.Duration,
+				FilePath: song.FilePath,
+			})
 		}
+		return dtos
 	default:
 		return response.SearchErrorResponse{
 			Error: fmt.Errorf("unknown search type"),

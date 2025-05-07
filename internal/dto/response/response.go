@@ -21,7 +21,7 @@ type ArtistDTO struct {
 	Name          string     `json:"name"`
 	Description   string     `json:"description"`
 	FormationYear time.Time  `json:"formation_year"`
-	Albums        []AlbumDTO `json:"albums"`
+	Albums        []AlbumDTO `json:"albums,omitempty"`
 }
 
 // Для ответов с деталями альбома
@@ -30,7 +30,7 @@ type AlbumDTO struct {
 	Title       string    `json:"title"`
 	ReleaseDate time.Time `json:"release_date"` // Формат: "2006-01-02"
 	CoverArtURL string    `json:"cover_art_url"`
-	Songs       []SongDTO `json:"songs"`
+	Songs       []SongDTO `json:"songs,omitempty"`
 }
 
 // Для ответов с деталями песни

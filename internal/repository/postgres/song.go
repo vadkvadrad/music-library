@@ -36,7 +36,7 @@ func (r *SongRepository) Search(ctx context.Context, query string, limit, offset
 	db := r.db.WithContext(ctx).Model(&model.Song{})
 
 	if query != "" {
-		db = db.Where("name LIKE ?", "%"+query+"%")
+		db = db.Where("LOWER(title) LIKE LOWER(?)", "%"+query+"%")
 	}
 
 	var total int64
@@ -46,7 +46,7 @@ func (r *SongRepository) Search(ctx context.Context, query string, limit, offset
 
 	err := db.Limit(limit).
 		Offset(offset).
-		Order("name ASC").
+		Order("title ASC").
 		Find(&songs).Error
 
 	return songs, total, err

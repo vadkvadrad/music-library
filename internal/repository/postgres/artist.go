@@ -7,6 +7,7 @@ import (
 	"music-lib/pkg/db"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type ArtistRepository struct {
@@ -25,8 +26,11 @@ func (r *ArtistRepository) Create(ctx context.Context, entity *model.Artist) (*m
 }
 
 func (r *ArtistRepository) Update(ctx context.Context, entity *model.Artist) (*model.Artist, error) {
-	err := r.db.WithContext(ctx).Save(entity).Error
-	return entity, err
+	result := r.db.Clauses(clause.Returning{}).Updates(entity)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return entity, nil
 }
 
 func (r *ArtistRepository) Delete(ctx context.Context, id uint) error {
@@ -38,7 +42,7 @@ func (r *ArtistRepository) Search(ctx context.Context, query string, limit, offs
 	db := r.db.WithContext(ctx).Model(&model.Artist{})
 
 	if query != "" {
-		db = db.Where("name LIKE ?", "%"+query+"%")
+		db = db.Where("LOWER(name) LIKE LOWER(?)", "%"+query+"%")
 	}
 
 	var total int64
