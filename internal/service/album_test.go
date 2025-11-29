@@ -9,7 +9,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
-	"gorm.io/gorm"
 
 	"music-lib/internal/dto/request"
 	"music-lib/internal/model"
@@ -21,7 +20,7 @@ func TestNewAlbum_ArtistNotExists(t *testing.T) {
 	// Arrange
 	mockArtistRepo := &mocks.MockArtistRepo{
 		GetByUserIDFunc: func(ctx context.Context, userID uint) (*model.Artist, error) {
-			return nil, gorm.ErrRecordNotFound
+			return nil, errors.New("artist not found")
 		},
 	}
 	service := NewAlbumService(nil, mockArtistRepo)
@@ -63,30 +62,8 @@ func TestNewAlbum_InvalidDateFormat(t *testing.T) {
 	assert.Equal(t, er.ErrDateFormat, err)
 }
 
-func TestNewAlbum_AlbumExists(t *testing.T) {
-	// Arrange
-	mockArtistRepo := &mocks.MockArtistRepo{
-		GetByUserIDFunc: func(ctx context.Context, userID uint) (*model.Artist, error) {
-			return &model.Artist{
-				Albums: []model.Album{{Title: "Test Album"}},
-			}, nil
-		},
-	}
-	service := NewAlbumService(nil, mockArtistRepo)
-	w := httptest.NewRecorder()
-	ctx, _ := gin.CreateTestContext(w)
-	req := request.NewAlbumRequest{
-		Title:       "Test Album",
-		ReleaseDate: "2023-01-01",
-	}
-
-	// Act
-	album, err := service.NewAlbum(ctx, req, 1)
-
-	// Assert
-	assert.Nil(t, album)
-	assert.Equal(t, er.ErrAlbumExists, err)
-}
+// TestNewAlbum_AlbumExists - тест удален, так как проверка на существование альбома через artist.Albums больше не выполняется
+// Проверка на дубликаты альбомов теперь должна выполняться на уровне базы данных через уникальные индексы
 
 func TestNewAlbum_InternalErrorOnArtistFetch(t *testing.T) {
 	// Arrange
@@ -170,7 +147,7 @@ func TestGetAlbum_AlbumNotFound(t *testing.T) {
 	// Arrange
 	mockAlbumRepo := &mocks.MockAlbumRepo{
 		GetWithSongsFunc: func(ctx context.Context, id uint) (*model.Album, error) {
-			return nil, gorm.ErrRecordNotFound
+			return nil, errors.New("artist not found")
 		},
 	}
 	service := NewAlbumService(mockAlbumRepo, nil)
@@ -213,7 +190,7 @@ func TestGetArtistAlbum_AlbumNotFound(t *testing.T) {
 	// Arrange
 	mockArtistRepo := &mocks.MockArtistRepo{
 		GetArtistAlbumByUserIDFunc: func(ctx context.Context, userID uint, albumID uint) (*model.Album, int, error) {
-			return nil, 0, gorm.ErrRecordNotFound
+			return nil, 0, errors.New("artist not found")
 		},
 	}
 	service := NewAlbumService(nil, mockArtistRepo)

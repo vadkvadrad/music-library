@@ -28,10 +28,8 @@ func NewSearchService(
 	}
 }
 
-
-
 func (s *SearchService) Search(
-	c *gin.Context, 
+	c *gin.Context,
 	types []string,
 	query string,
 	limit int,
@@ -43,10 +41,10 @@ func (s *SearchService) Search(
 
 	for _, entityType := range types {
 		wg.Add(1)
-		
+
 		go func(t string) {
 			defer wg.Done()
-			
+
 			var data any
 			var total int64
 			var err error
@@ -66,7 +64,7 @@ func (s *SearchService) Search(
 
 			mu.Lock()
 			defer mu.Unlock()
-			
+
 			result[t] = response.PaginatedResponse{
 				Data:       convertToDTO(t, data),
 				Pagination: response.Pagination{Limit: limit, Offset: offset, Total: total},
@@ -85,7 +83,7 @@ func convertToDTO(t string, data any) any {
 		if !ok {
 			return response.SearchErrorResponse{
 				Error: fmt.Errorf("can't convert to artist model"),
-				Tip: "check the validity of Artist model",
+				Tip:   "check the validity of Artist model",
 			}
 		}
 		var dtos []response.ArtistDTO
@@ -97,20 +95,20 @@ func convertToDTO(t string, data any) any {
 				FormationYear: artist.FormationYear,
 			})
 		}
-        return dtos
+		return dtos
 	case "album":
 		albums, ok := data.([]model.Album)
 		if !ok {
 			return response.SearchErrorResponse{
 				Error: fmt.Errorf("can't convert to album model"),
-				Tip: "check the validity of Album model ",
+				Tip:   "check the validity of Album model ",
 			}
 		}
 		var dtos []response.AlbumDTO
 		for _, album := range albums {
 			dtos = append(dtos, response.AlbumDTO{
-				ID: album.ID,
-				Title: album.Title,
+				ID:          album.ID,
+				Title:       album.Title,
 				ReleaseDate: album.ReleaseDate,
 				CoverArtURL: album.CoverArtURL,
 			})
@@ -121,15 +119,19 @@ func convertToDTO(t string, data any) any {
 		if !ok {
 			return response.SearchErrorResponse{
 				Error: fmt.Errorf("can't convert to song model"),
-				Tip: "check the validity of Song model ",
+				Tip:   "check the validity of Song model ",
 			}
 		}
 		var dtos []response.SongDTO
 		for _, song := range songs {
+			var albumID uint
+			if song.AlbumID != nil {
+				albumID = *song.AlbumID
+			}
 			dtos = append(dtos, response.SongDTO{
-				ID: song.ID,
-				Title: song.Title,
-				AlbumID: song.AlbumID,
+				ID:       song.ID,
+				Title:    song.Title,
+				AlbumID:  albumID,
 				Duration: song.Duration,
 				FilePath: song.FilePath,
 			})
@@ -138,7 +140,7 @@ func convertToDTO(t string, data any) any {
 	default:
 		return response.SearchErrorResponse{
 			Error: fmt.Errorf("unknown search type"),
-			Tip: "check type conversion",
+			Tip:   "check type conversion",
 		}
 	}
 }

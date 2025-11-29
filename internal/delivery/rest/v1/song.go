@@ -21,15 +21,14 @@ func (h *Handler) initSongRoutes(api *gin.RouterGroup) {
 	}
 }
 
-
 func (h *Handler) AddSong() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		albumID, err := strconv.Atoi(ctx.Param("album_id"))
 		if err != nil {
 			h.logger.Debug("Invalid album ID format",
-                "received", ctx.Param("album_id"),
-                "error", err,
-            )
+				"received", ctx.Param("album_id"),
+				"error", err,
+			)
 			ctx.Error(&er.ValidationError{Message: err.Error()})
 			return
 		}
@@ -43,8 +42,8 @@ func (h *Handler) AddSong() gin.HandlerFunc {
 		user, ok := middleware.GetUserData(ctx)
 		if !ok {
 			h.logger.Debug("User credentials not found",
-                "error", er.ErrWrongUserCredentials.Error(),
-            )
+				"error", er.ErrWrongUserCredentials.Error(),
+			)
 			ctx.Error(er.ErrNotAuthorized)
 			return
 		}
@@ -56,10 +55,10 @@ func (h *Handler) AddSong() gin.HandlerFunc {
 		}
 
 		h.logger.Infow("Adding new song",
-            "song_title", body.Title,
-            "album_id", album.ID,
-            "artist_id", album.ArtistID,
-        )
+			"song_title", body.Title,
+			"album_id", album.ID,
+			"artist_id", album.ArtistID,
+		)
 
 		song, err := h.services.Song.AddSong(ctx, album, body)
 		if err != nil {
@@ -75,22 +74,21 @@ func (h *Handler) AddSong() gin.HandlerFunc {
 		}
 
 		ctx.JSON(http.StatusCreated, response.AddSongResponse{
-			AlbumID: album.ID,
+			AlbumID:   album.ID,
 			AlbumName: album.Title,
-			ArtistID: album.ArtistID,
+			ArtistID:  album.ArtistID,
 		})
 	}
 }
-
 
 func (h *Handler) GetSong() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		id, err := strconv.Atoi(ctx.Param("id"))
 		if err != nil {
 			h.logger.Debug("Invalid ID format",
-                "received", ctx.Param("id"),
-                "error", err,
-            )
+				"received", ctx.Param("id"),
+				"error", err,
+			)
 			ctx.Error(&er.ValidationError{Message: err.Error()})
 			return
 		}
@@ -101,25 +99,21 @@ func (h *Handler) GetSong() gin.HandlerFunc {
 			return
 		}
 
-		var couplets []response.CoupletDTO
-		for _, couplet := range song.Lyrics.Couplets {
-			couplets = append(couplets, response.CoupletDTO{
-				Number: couplet.Number,
-				Couplet: couplet.Text,
-			})
+		var albumID uint
+		if song.AlbumID != nil {
+			albumID = *song.AlbumID
 		}
 
+		// Lyrics загружаются отдельно при необходимости
 		ctx.JSON(http.StatusOK, response.SongDTO{
-			ID: song.ID,
-			Title: song.Title,
-			AlbumID: song.AlbumID,
+			ID:       song.ID,
+			Title:    song.Title,
+			AlbumID:  albumID,
 			Duration: song.Duration,
 			FilePath: song.FilePath,
 			Lyrics: response.LyricsDTO{
-				Couplets: couplets,
+				Couplets: []response.CoupletDTO{},
 			},
 		})
 	}
 }
-
-

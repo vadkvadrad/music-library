@@ -1,7 +1,6 @@
 package service
 
 import (
-	"errors"
 	"fmt"
 	"music-lib/internal/dto/request"
 	"music-lib/internal/model"
@@ -11,7 +10,6 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 type AlbumService struct {
@@ -29,7 +27,7 @@ func NewAlbumService(album repository.IAlbumRepository, artist repository.IArtis
 func (s *AlbumService) NewAlbum(ctx *gin.Context, body request.NewAlbumRequest, userID uint) (*model.Album, error) {
 	artist, err := s.artistRepository.GetByUserID(ctx, userID)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+		if err.Error() == "artist not found" {
 			return nil, er.ErrArtistNotExists
 		}
 		return nil, &er.InternalError{Message: fmt.Sprintf("NewAlbum: can't get artist: %s", err.Error())}
@@ -40,16 +38,9 @@ func (s *AlbumService) NewAlbum(ctx *gin.Context, body request.NewAlbumRequest, 
 		return nil, er.ErrDateFormat
 	}
 
-	for _, album := range artist.Albums {
-		if album.Title == body.Title {
-			return nil, er.ErrAlbumExists
-		}
-	}
-
 	album, err := s.albumRepository.Create(ctx, &model.Album{
 		Title:       body.Title,
 		ArtistID:    artist.ID,
-		Songs:       nil,
 		ReleaseDate: formationDate,
 		CoverArtURL: body.CoverArtURL,
 	})
@@ -68,7 +59,7 @@ func (s *AlbumService) GetAlbum(ctx *gin.Context, strID string) (*model.Album, e
 
 	album, err := s.albumRepository.GetWithSongs(ctx, uint(id))
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+		if err.Error() == "album not found" {
 			return nil, er.ErrAlbumNotExists
 		}
 
@@ -78,11 +69,10 @@ func (s *AlbumService) GetAlbum(ctx *gin.Context, strID string) (*model.Album, e
 	return album, nil
 }
 
-
 func (s *AlbumService) GetArtistAlbum(ctx *gin.Context, userID uint, albumID uint) (*model.Album, error) {
 	album, count, err := s.artistRepository.GetArtistAlbumByUserID(ctx, userID, albumID)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+		if err.Error() == "album not found" {
 			return nil, er.ErrAlbumNotExists
 		}
 		return nil, &er.InternalError{Message: err.Error()}

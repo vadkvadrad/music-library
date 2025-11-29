@@ -6,10 +6,11 @@ import (
 	"testing"
 	"time"
 
+	"errors"
+
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
-	"gorm.io/gorm"
 
 	"music-lib/internal/dto/request"
 	"music-lib/internal/model"
@@ -42,7 +43,7 @@ func TestNewArtist_ArtistExists(t *testing.T) {
 	logger := zap.NewNop().Sugar()
 	mockRepo := &mocks.MockArtistRepo{
 		GetByUserIDFunc: func(ctx context.Context, userID uint) (*model.Artist, error) {
-			return nil, gorm.ErrRecordNotFound
+			return nil, errors.New("artist not found")
 		},
 		IsExistsFunc: func(ctx context.Context, name string) bool {
 			return true
@@ -66,7 +67,7 @@ func TestNewArtist_InvalidDateFormat(t *testing.T) {
 	logger := zap.NewNop().Sugar()
 	mockRepo := &mocks.MockArtistRepo{
 		GetByUserIDFunc: func(ctx context.Context, userID uint) (*model.Artist, error) {
-			return nil, gorm.ErrRecordNotFound
+			return nil, errors.New("artist not found")
 		},
 		IsExistsFunc: func(ctx context.Context, name string) bool {
 			return false
@@ -97,7 +98,7 @@ func TestNewArtist_Success(t *testing.T) {
 	}
 	mockRepo := &mocks.MockArtistRepo{
 		GetByUserIDFunc: func(ctx context.Context, userID uint) (*model.Artist, error) {
-			return nil, gorm.ErrRecordNotFound
+			return nil, errors.New("artist not found")
 		},
 		IsExistsFunc: func(ctx context.Context, name string) bool {
 			return false
@@ -136,7 +137,7 @@ func TestGetArtist_NotFound(t *testing.T) {
 	logger := zap.NewNop().Sugar()
 	mockRepo := &mocks.MockArtistRepo{
 		GetWithAlbumsFunc: func(ctx context.Context, id uint) (*model.Artist, error) {
-			return nil, gorm.ErrRecordNotFound
+			return nil, errors.New("artist not found")
 		},
 	}
 	service := NewArtistService(mockRepo, logger)
@@ -171,7 +172,7 @@ func TestUpdateArtist_NotFound(t *testing.T) {
 	logger := zap.NewNop().Sugar()
 	mockRepo := &mocks.MockArtistRepo{
 		GetByIDFunc: func(ctx context.Context, id uint) (*model.Artist, error) {
-			return nil, gorm.ErrRecordNotFound
+			return nil, errors.New("artist not found")
 		},
 	}
 	service := NewArtistService(mockRepo, logger)

@@ -52,14 +52,13 @@ func (h *Handler) NewArtist() gin.HandlerFunc {
 		}
 
 		ctx.JSON(http.StatusCreated, response.ArtistDTO{
-			ID: artist.ID,
-			Name: artist.Name,
-			Description: artist.Description,
+			ID:            artist.ID,
+			Name:          artist.Name,
+			Description:   artist.Description,
 			FormationYear: artist.FormationYear,
 		})
 	}
 }
-
 
 func (h *Handler) GetArtist() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
@@ -71,27 +70,16 @@ func (h *Handler) GetArtist() gin.HandlerFunc {
 			return
 		}
 
-		var albums []response.AlbumDTO 
-		for _, album := range artist.Albums {
-			albums = append(albums, response.AlbumDTO{
-				ID: album.ID,
-				Title: album.Title,
-				ReleaseDate: album.ReleaseDate,
-				CoverArtURL: album.CoverArtURL,
-				Songs: nil,
-			})
-		}
-
+		// Albums загружаются отдельно при необходимости
 		ctx.JSON(http.StatusOK, response.ArtistDTO{
-			ID: artist.ID,
-			Name: artist.Name,
-			Description: artist.Description,
+			ID:            artist.ID,
+			Name:          artist.Name,
+			Description:   artist.Description,
 			FormationYear: artist.FormationYear,
-			Albums: albums,
+			Albums:        []response.AlbumDTO{},
 		})
 	}
 }
-
 
 func (h *Handler) UpdateArtist() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
@@ -108,12 +96,12 @@ func (h *Handler) UpdateArtist() gin.HandlerFunc {
 			return
 		}
 
-		h.logger.Infow("Updating artist", 
+		h.logger.Infow("Updating artist",
 			"id", id,
 			"name to update", body.ArtistName,
 			"description to update", body.Description,
 			"formation year to update", body.FormationYear,
-		)	
+		)
 
 		user, ok := middleware.GetUserData(ctx)
 		if !ok {
@@ -129,13 +117,13 @@ func (h *Handler) UpdateArtist() gin.HandlerFunc {
 		artist, err := h.services.Artist.UpdateArtist(ctx, uint(id), body)
 		if err != nil {
 			ctx.Error(err)
-			return		
+			return
 		}
 
 		ctx.JSON(http.StatusOK, response.ArtistDTO{
-			ID: artist.ID,
-			Name: artist.Name,
-			Description: artist.Description,
+			ID:            artist.ID,
+			Name:          artist.Name,
+			Description:   artist.Description,
 			FormationYear: artist.FormationYear,
 		})
 	}

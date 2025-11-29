@@ -1,7 +1,6 @@
 package service
 
 import (
-	"errors"
 	"fmt"
 	"music-lib/internal/dto/request"
 	"music-lib/internal/model"
@@ -10,7 +9,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgconn"
-	"gorm.io/gorm"
 )
 
 type ProfileService struct {
@@ -41,7 +39,7 @@ func (s *ProfileService) NewProfile(c *gin.Context, body request.NewProfileReque
 func (s *ProfileService) GetProfile(c *gin.Context, userID uint) (*model.Profile, error) {
 	profile, err := s.profileRepository.GetByUserID(c, userID)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+		if err.Error() == "profile not found" {
 			return nil, &er.NotFoundError{Message: fmt.Sprintf("profile not found for user ID %d", userID)}
 		}
 		return nil, &er.InternalError{Message: "failed to get profile"}

@@ -4,47 +4,43 @@ import "time"
 
 // Профиль
 type Profile struct {
-	UserID      uint         `gorm:"primaryKey" json:"user_id"`
-	Bio         string       `json:"bio"`
-	AvatarURL   string       `json:"avatar_url"`
-	Favorites   []Favorite   `gorm:"foreignKey:ProfileID"`
-	Collections []Collection `gorm:"foreignKey:ProfileID"`
-	History     []History    `gorm:"foreignKey:ProfileID"`
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	UserID    uint      `json:"user_id"`
+	Bio       string    `json:"bio"`
+	AvatarURL string    `json:"avatar_url"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 // Избранное
 type Favorite struct {
-	ID         uint   `gorm:"primaryKey"`
-	ProfileID  uint   `gorm:"index;not null"`
-	ObjectType string `gorm:"not null"` // song, artist, album
-	ObjectID   uint   `gorm:"not null"`
-	CreatedAt  time.Time
+	ID         uint      `json:"id"`
+	ProfileID  uint      `json:"profile_id"`
+	ObjectType string    `json:"object_type"` // song, artist, album
+	ObjectID   uint      `json:"object_id"`
+	CreatedAt  time.Time `json:"created_at"`
 }
 
 // Коллекция
 type Collection struct {
-	ID          uint   `gorm:"primaryKey"`
-	ProfileID   uint   `gorm:"index;not null"`
-	Name        string `gorm:"not null"`
-	Description string
-	Items       []CollectionItem `gorm:"foreignKey:CollectionID"`
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ID          uint      `json:"id"`
+	ProfileID   uint      `json:"profile_id"`
+	Name        string    `json:"name"`
+	Description string    `json:"description"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
 
 // Элемент коллекции
 type CollectionItem struct {
-	CollectionID uint `gorm:"primaryKey"`
-	SongID       uint `gorm:"primaryKey"`
-	Position     int  `gorm:"not null"`
+	CollectionID uint `json:"collection_id"`
+	SongID       uint `json:"song_id"`
+	Position     int  `json:"position"`
 }
 
 // История прослушиваний
 type History struct {
-	ID        uint      `gorm:"primaryKey"`
-	ProfileID uint      `gorm:"index;not null"`
-	SongID    uint      `gorm:"index;not null"`
-	PlayedAt  time.Time `gorm:"index"`
+	ID        uint      `json:"id"`
+	ProfileID uint      `json:"profile_id"`
+	SongID    uint      `json:"song_id"`
+	PlayedAt  time.Time `json:"played_at"`
 }

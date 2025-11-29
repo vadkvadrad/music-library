@@ -11,7 +11,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
-	"gorm.io/gorm"
 )
 
 func TestAddSong_SongExists(t *testing.T) {
@@ -160,7 +159,7 @@ func TestGetSong_NotFound(t *testing.T) {
 	logger := zap.NewNop().Sugar()
 	mockSongRepo := &mocks.MockSongRepo{
 		GetByIDFunc: func(ctx context.Context, id uint) (*model.Song, error) {
-			return nil, gorm.ErrRecordNotFound
+			return nil, errors.New("song not found")
 		},
 	}
 	service := NewSongService(mockSongRepo, nil, nil, nil, nil, logger)

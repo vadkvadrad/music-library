@@ -2,22 +2,20 @@ package service
 
 import (
 	"context"
-	"errors"
 	"music-lib/internal/dto/request"
 	"music-lib/internal/model"
 	"music-lib/internal/repository"
 	"music-lib/pkg/er"
 
 	"go.uber.org/zap"
-	"gorm.io/gorm"
 )
 
 type SongService struct {
-	songRepo       repository.ISongRepository
-	albumRepo      repository.IAlbumRepository
-	songGenreRepo  repository.ISongGenreRepository
-	genreRepo      repository.IGenreRepository
-	lyricsRepo     repository.ILyricsRepository
+	songRepo      repository.ISongRepository
+	albumRepo     repository.IAlbumRepository
+	songGenreRepo repository.ISongGenreRepository
+	genreRepo     repository.IGenreRepository
+	lyricsRepo    repository.ILyricsRepository
 
 	logger *zap.SugaredLogger
 }
@@ -53,18 +51,18 @@ func (s *SongService) AddSong(ctx context.Context, album *model.Album, songReq r
 			"song_title", songReq.Title,
 			"error", er.ErrSongExists.Error(),
 		)
-		return nil,  er.ErrSongExists
+		return nil, er.ErrSongExists
 	}
 
 	s.logger.Debug("Attempting to create song")
 
+	albumID := album.ID
 	song, err := s.songRepo.Create(ctx, &model.Song{
-		Title:      songReq.Title,
-		AlbumID:    album.ID,
-		ArtistID:   album.ArtistID,
-		SongGenres: nil,
-		Duration:   songReq.Duration,
-		FilePath:   songReq.FilePath,
+		Title:    songReq.Title,
+		AlbumID:  &albumID,
+		ArtistID: album.ArtistID,
+		Duration: songReq.Duration,
+		FilePath: songReq.FilePath,
 	})
 
 	if err != nil {
@@ -140,11 +138,10 @@ func (s *SongService) addLyrics(ctx context.Context, songID uint, req request.Ad
 	return s.lyricsRepo.Upsert(ctx, &lyrics)
 }
 
-
 func (s *SongService) GetSong(ctx context.Context, songID uint) (*model.Song, error) {
 	song, err := s.songRepo.GetByID(ctx, songID)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+		if err.Error() == "song not found" {
 			return nil, er.ErrSongNotExists
 		}
 		return nil, &er.InternalError{Message: err.Error()}

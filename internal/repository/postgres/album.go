@@ -2,11 +2,12 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	"music-lib/internal/model"
 	"music-lib/pkg/db"
-
-	"gorm.io/gorm"
+	"time"
 )
 
 type AlbumRepository struct {
@@ -20,65 +21,159 @@ func NewAlbumRepository(db *db.Db) *AlbumRepository {
 }
 
 func (r *AlbumRepository) Create(ctx context.Context, entity *model.Album) (*model.Album, error) {
-	err := r.db.WithContext(ctx).Create(entity).Error
+	query := `
+		INSERT INTO albums (title, artist_id, release_date, cover_art_url, created_at, updated_at)
+		VALUES ($1, $2, $3, $4, $5, $6)
+		RETURNING id, created_at, updated_at
+	`
+
+	now := time.Now()
+	err := r.db.QueryRowContext(ctx,
+		query,
+		entity.Title,
+		entity.ArtistID,
+		entity.ReleaseDate,
+		entity.CoverArtURL,
+		now,
+		now,
+	).Scan(&entity.ID, &entity.CreatedAt, &entity.UpdatedAt)
+
 	return entity, err
 }
 
 func (r *AlbumRepository) Update(ctx context.Context, entity *model.Album) (*model.Album, error) {
-	err := r.db.WithContext(ctx).Save(entity).Error
-	return entity, err
+	query := `
+		UPDATE albums 
+		SET title = $1, artist_id = $2, release_date = $3, cover_art_url = $4, updated_at = $5
+		WHERE id = $6
+		RETURNING updated_at
+	`
+
+	now := time.Now()
+	err := r.db.QueryRowContext(ctx,
+		query,
+		entity.Title,
+		entity.ArtistID,
+		entity.ReleaseDate,
+		entity.CoverArtURL,
+		now,
+		entity.ID,
+	).Scan(&entity.UpdatedAt)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.New("album not found")
+		}
+		return nil, err
+	}
+	return entity, nil
 }
 
 func (r *AlbumRepository) Delete(ctx context.Context, id uint) error {
-	return r.db.WithContext(ctx).Delete(&model.Album{}, id).Error
+	query := `DELETE FROM albums WHERE id = $1`
+	result, err := r.db.ExecContext(ctx, query, id)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return errors.New("album not found")
+	}
+	return nil
 }
 
 func (r *AlbumRepository) Search(ctx context.Context, query string, limit, offset int) ([]model.Album, int64, error) {
 	var albums []model.Album
-	db := r.db.WithContext(ctx).Model(&model.Album{})
+	var total int64
+
+	whereClause := ""
+	args := []interface{}{}
+	argIndex := 1
 
 	if query != "" {
-		db = db.Where("LOWER(title) LIKE LOWER(?)", "%"+query+"%")
+		whereClause = "WHERE LOWER(title) LIKE LOWER($" + fmt.Sprintf("%d", argIndex) + ")"
+		args = append(args, "%"+query+"%")
+		argIndex++
 	}
 
-	var total int64
-	if err := db.Count(&total).Error; err != nil {
-		return nil, 0, fmt.Errorf("error counting artists: %w", err)
+	// Подсчет общего количества
+	countQuery := "SELECT COUNT(*) FROM albums " + whereClause
+	err := r.db.QueryRowContext(ctx, countQuery, args...).Scan(&total)
+	if err != nil {
+		return nil, 0, fmt.Errorf("error counting albums: %w", err)
 	}
 
-	err := db.Limit(limit).
-		Preload("Songs").
-		Offset(offset).
-		Order("title ASC").
-		Find(&albums).Error
+	// Получение данных
+	selectQuery := `
+		SELECT id, title, artist_id, release_date, cover_art_url, created_at, updated_at
+		FROM albums
+		` + whereClause + `
+		ORDER BY title ASC
+		LIMIT $` + fmt.Sprintf("%d", argIndex) + ` OFFSET $` + fmt.Sprintf("%d", argIndex+1)
 
-	return albums, total, err
+	args = append(args, limit, offset)
+	rows, err := r.db.QueryContext(ctx, selectQuery, args...)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var album model.Album
+		err := rows.Scan(
+			&album.ID,
+			&album.Title,
+			&album.ArtistID,
+			&album.ReleaseDate,
+			&album.CoverArtURL,
+			&album.CreatedAt,
+			&album.UpdatedAt,
+		)
+		if err != nil {
+			return nil, 0, err
+		}
+		albums = append(albums, album)
+	}
+
+	return albums, total, rows.Err()
 }
-
 
 func (r *AlbumRepository) GetByID(ctx context.Context, id uint) (*model.Album, error) {
-	var album *model.Album
-	err := r.db.WithContext(ctx).
-		First(&album, id).Error
+	var album model.Album
+	query := `
+		SELECT id, title, artist_id, release_date, cover_art_url, created_at, updated_at
+		FROM albums
+		WHERE id = $1
+	`
+
+	err := r.db.QueryRowContext(ctx, query, id).Scan(
+		&album.ID,
+		&album.Title,
+		&album.ArtistID,
+		&album.ReleaseDate,
+		&album.CoverArtURL,
+		&album.CreatedAt,
+		&album.UpdatedAt,
+	)
 
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.New("album not found")
+		}
 		return nil, err
 	}
-	return album, nil
+	return &album, nil
 }
 
-
 func (r *AlbumRepository) GetWithSongs(ctx context.Context, id uint) (*model.Album, error) {
-	var album *model.Album
-	err := r.db.WithContext(ctx).
-		Preload("Songs", func(db *db.Db) *gorm.DB {
-			return db.DB.Order("created_at DESC")
-		}(r.db)).
-		First(&album, id).Error
-
+	album, err := r.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
-
+	// Songs будут загружаться отдельным запросом при необходимости
 	return album, nil
 }

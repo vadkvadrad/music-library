@@ -22,7 +22,6 @@ func (h *Handler) initAlbumRoutes(api *gin.RouterGroup) {
 	}
 }
 
-
 func (h *Handler) NewAlbum() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		var body request.NewAlbumRequest
@@ -51,7 +50,6 @@ func (h *Handler) NewAlbum() gin.HandlerFunc {
 	}
 }
 
-
 func (h *Handler) GetAlbum() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		strID := ctx.Param("id")
@@ -62,21 +60,13 @@ func (h *Handler) GetAlbum() gin.HandlerFunc {
 			return
 		}
 
-		var songs []response.SongDTO
-		for _, song := range album.Songs {
-			songs = append(songs, response.SongDTO{
-				ID: song.ID,
-				Title: song.Title,
-				Duration: song.Duration,
-				FilePath: song.FilePath,
-			})
-		}
+		// Songs загружаются отдельно при необходимости
 		ctx.JSON(http.StatusOK, response.AlbumDTO{
-			ID: album.ID,
-			Title: album.Title,
+			ID:          album.ID,
+			Title:       album.Title,
 			ReleaseDate: album.ReleaseDate,
 			CoverArtURL: album.CoverArtURL,
-			Songs: songs,
+			Songs:       []response.SongDTO{},
 		})
 	}
 }
