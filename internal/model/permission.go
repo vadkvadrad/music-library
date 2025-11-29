@@ -15,11 +15,11 @@ const (
 )
 
 type ResourcePermission struct {
-	ID           uint       `gorm:"primaryKey"`
-	UserID       uint       `gorm:"index"`
-	ResourceID   uint       `gorm:"index"`
-	ResourceType Resource   `gorm:"text"`
-	Permission   Permission `gorm:"text"`
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	ID           uint       `json:"id"`
+	UserID       uint       `json:"user_id"`
+	ResourceID   uint       `json:"resource_id"`
+	ResourceType Resource   `json:"resource_type"`
+	Permission   Permission `json:"permission"`
+	CreatedAt    time.Time  `json:"created_at"`
+	UpdatedAt    time.Time  `json:"updated_at"`
 }

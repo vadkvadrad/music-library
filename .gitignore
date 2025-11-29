@@ -1,3 +1,5 @@
-/.env
-/postgres-data
-/docker-compose.yaml
+```
+# Dependencies
+go.mod
+go.sum
+```

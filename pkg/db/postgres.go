@@ -1,13 +1,14 @@
 package db
 
 import (
+	"database/sql"
+	"fmt"
 
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
+	_ "github.com/lib/pq"
 )
 
 type Db struct {
-	*gorm.DB
+	*sql.DB
 }
 
 type DbConfig struct {
@@ -21,10 +22,16 @@ func NewDbConfig(dsn string) *DbConfig {
 }
 
 func NewDb(conf *DbConfig) *Db {
-	db, err := gorm.Open(postgres.Open(conf.Dsn), &gorm.Config{})
+	db, err := sql.Open("postgres", conf.Dsn)
 	if err != nil {
 		panic(err)
 	}
+
+	// Test the connection
+	if err := db.Ping(); err != nil {
+		panic(err)
+	}
+
 	return &Db{
 		DB: db,
 	}
