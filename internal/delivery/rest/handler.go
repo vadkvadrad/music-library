@@ -2,7 +2,7 @@ package rest
 
 import (
 	"music-lib/internal/config"
-	"music-lib/internal/delivery/rest/v1"
+	v1 "music-lib/internal/delivery/rest/v1"
 	"music-lib/internal/middleware"
 	"music-lib/internal/service"
 	"music-lib/pkg/er"
@@ -41,6 +41,7 @@ func (h *Handler) Init(conf *config.Config) *gin.Engine {
 	// Init gin handler
 	router := gin.Default()
 	router.Use(
+		middleware.CORS(),
 		gin.Recovery(),
 		middleware.Logger(),
 		errorHandler.GinMiddleware(),
