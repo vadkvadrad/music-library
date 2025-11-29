@@ -201,8 +201,42 @@ func (r *ArtistRepository) GetWithAlbums(ctx context.Context, id uint) (*model.A
 	if err != nil {
 		return nil, err
 	}
-	// Albums будут загружаться отдельным запросом при необходимости
 	return artist, nil
+}
+
+func (r *ArtistRepository) GetAlbumsByArtistID(ctx context.Context, artistID uint) ([]model.Album, error) {
+	query := `
+		SELECT id, title, artist_id, release_date, cover_art_url, created_at, updated_at
+		FROM albums
+		WHERE artist_id = $1
+		ORDER BY release_date DESC
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, artistID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var albums []model.Album
+	for rows.Next() {
+		var album model.Album
+		err := rows.Scan(
+			&album.ID,
+			&album.Title,
+			&album.ArtistID,
+			&album.ReleaseDate,
+			&album.CoverArtURL,
+			&album.CreatedAt,
+			&album.UpdatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		albums = append(albums, album)
+	}
+
+	return albums, rows.Err()
 }
 
 func (r *ArtistRepository) IsExists(ctx context.Context, name string) bool {

@@ -1,10 +1,20 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Music, Search, Plus, User } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { profileApi } from '../api/profile';
+import { Music, Search, Plus, User, Edit } from 'lucide-react';
 import Button from '../components/Button';
 
 export default function HomePage() {
   const { isAuthenticated } = useAuth();
+  
+  const { data: profile } = useQuery({
+    queryKey: ['profile'],
+    queryFn: profileApi.getProfile,
+    enabled: isAuthenticated,
+  });
+  
+  const hasArtist = !!profile?.artist;
 
   return (
     <div className="text-center">
@@ -37,16 +47,33 @@ export default function HomePage() {
         {isAuthenticated && (
           <>
             <div className="card text-center">
-              <Plus className="h-12 w-12 text-primary-600 mx-auto mb-4" />
-              <h2 className="text-xl font-semibold mb-2">Создать</h2>
-              <p className="text-gray-600 mb-4">
-                Добавьте своего артиста, альбом или песню
-              </p>
-              <Link to="/create-artist">
-                <Button variant="primary" className="w-full">
-                  Создать артиста
-                </Button>
-              </Link>
+              {hasArtist && profile?.artist?.id ? (
+                <>
+                  <Edit className="h-12 w-12 text-primary-600 mx-auto mb-4" />
+                  <h2 className="text-xl font-semibold mb-2">Редактировать</h2>
+                  <p className="text-gray-600 mb-4">
+                    Управляйте своим артистом, альбомами и песнями
+                  </p>
+                  <Link to={`/artist/${profile.artist.id}`}>
+                    <Button variant="primary" className="w-full">
+                      Редактировать артиста
+                    </Button>
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Plus className="h-12 w-12 text-primary-600 mx-auto mb-4" />
+                  <h2 className="text-xl font-semibold mb-2">Создать</h2>
+                  <p className="text-gray-600 mb-4">
+                    Добавьте своего артиста, альбом или песню
+                  </p>
+                  <Link to="/create-artist">
+                    <Button variant="primary" className="w-full">
+                      Создать артиста
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
 
             <div className="card text-center">

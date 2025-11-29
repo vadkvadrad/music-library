@@ -36,9 +36,9 @@ func NewServices(deps *Deps) *Services {
 			deps.Repositories.Lyrics,
 			deps.Logger,
 		),
-		Genre:   NewGenreService(deps.Repositories.Genre, deps.Logger),
-		Search:  NewSearchService(deps.Repositories.Song, deps.Repositories.Album, deps.Repositories.Artist),
-		Profile: NewProfileService(deps.Repositories.Profile),
+		Genre:      NewGenreService(deps.Repositories.Genre, deps.Logger),
+		Search:     NewSearchService(deps.Repositories.Song, deps.Repositories.Album, deps.Repositories.Artist),
+		Profile:    NewProfileService(deps.Repositories.Profile, deps.Repositories.Artist),
 		Permission: NewPermissionService(deps.Repositories.Permission, deps.Logger),
 	}
 }

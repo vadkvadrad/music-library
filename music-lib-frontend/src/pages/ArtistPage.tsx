@@ -1,18 +1,28 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { musicApi } from '../api/music';
+import { profileApi } from '../api/profile';
 import Card from '../components/Card';
+import Button from '../components/Button';
 import { formatDate } from '../utils/format';
-import { Mic, Disc, Music } from 'lucide-react';
+import { Mic, Disc, Music, Edit } from 'lucide-react';
 
 export default function ArtistPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
 
   const { data: artist, isLoading, error } = useQuery({
     queryKey: ['artist', id],
     queryFn: () => musicApi.getArtist(id!),
     enabled: !!id,
   });
+
+  const { data: profile } = useQuery({
+    queryKey: ['profile'],
+    queryFn: profileApi.getProfile,
+  });
+
+  const canEdit = profile?.artist && profile.artist.id === Number(id);
 
   if (isLoading) {
     return <div className="text-center py-12">Загрузка...</div>;
@@ -29,16 +39,27 @@ export default function ArtistPage() {
   return (
     <div>
       <div className="mb-8">
-        <div className="flex items-center gap-4 mb-4">
-          <Mic className="h-12 w-12 text-primary-600" />
-          <div>
-            <h1 className="text-4xl font-bold">{artist.name}</h1>
-            {artist.formation_year && (
-              <p className="text-gray-600 mt-1">
-                Основан: {formatDate(artist.formation_year)}
-              </p>
-            )}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-4">
+            <Mic className="h-12 w-12 text-primary-600" />
+            <div>
+              <h1 className="text-4xl font-bold">{artist.name}</h1>
+              {artist.formation_year && (
+                <p className="text-gray-600 mt-1">
+                  Основан: {formatDate(artist.formation_year)}
+                </p>
+              )}
+            </div>
           </div>
+          {canEdit && (
+            <Button
+              variant="primary"
+              onClick={() => navigate('/create-artist')}
+            >
+              <Edit className="h-4 w-4 mr-2" />
+              Редактировать
+            </Button>
+          )}
         </div>
         {artist.description && (
           <p className="text-gray-700 text-lg mt-4">{artist.description}</p>

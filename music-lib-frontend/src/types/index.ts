@@ -75,6 +75,12 @@ export interface Profile {
   avatar_url: string;
   created_at: string;
   updated_at: string;
+  artist?: {
+    id: number;
+    name: string;
+    description: string;
+    formation_year: string;
+  };
 }
 
 export interface NewProfileRequest {

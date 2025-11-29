@@ -123,6 +123,12 @@ export default function ProfilePage() {
               className="w-32 h-32 rounded-full object-cover mb-4"
             />
           )}
+          {profile?.artist && (
+            <div className="mb-4">
+              <h2 className="text-xl font-semibold mb-2">Артист</h2>
+              <p className="text-gray-700 font-medium">{profile.artist.name}</p>
+            </div>
+          )}
           <div className="mb-4">
             <h2 className="text-xl font-semibold mb-2">Биография</h2>
             <p className="text-gray-700">{profile?.bio}</p>
@@ -132,6 +138,27 @@ export default function ProfilePage() {
               Создан: {formatDate(profile.created_at)}
             </p>
           )}
+          
+          {profile?.artist && (
+            <div className="mt-6 p-4 bg-primary-50 rounded-lg border border-primary-200">
+              <h3 className="text-lg font-semibold mb-2">Ваш артист</h3>
+              <p className="text-gray-700 mb-2">
+                <strong>{profile.artist.name}</strong>
+              </p>
+              {profile.artist.description && (
+                <p className="text-gray-600 text-sm mb-2">
+                  {profile.artist.description}
+                </p>
+              )}
+              <a
+                href={`/artist/${profile.artist.id}`}
+                className="text-primary-600 hover:underline text-sm"
+              >
+                Посмотреть профиль артиста →
+              </a>
+            </div>
+          )}
+          
           <Button
             onClick={() => {
               setIsEditing(true);

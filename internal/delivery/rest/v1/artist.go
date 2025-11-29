@@ -70,13 +70,30 @@ func (h *Handler) GetArtist() gin.HandlerFunc {
 			return
 		}
 
-		// Albums загружаются отдельно при необходимости
+		// Загружаем альбомы артиста
+		albums, err := h.services.Artist.GetAlbums(ctx, artist.ID)
+		if err != nil {
+			// Если ошибка при загрузке альбомов, возвращаем артиста без альбомов
+			albums = []model.Album{}
+		}
+
+		// Преобразуем альбомы в DTO
+		albumDTOs := make([]response.AlbumDTO, len(albums))
+		for i, album := range albums {
+			albumDTOs[i] = response.AlbumDTO{
+				ID:          album.ID,
+				Title:       album.Title,
+				ReleaseDate: album.ReleaseDate,
+				CoverArtURL: album.CoverArtURL,
+			}
+		}
+
 		ctx.JSON(http.StatusOK, response.ArtistDTO{
 			ID:            artist.ID,
 			Name:          artist.Name,
 			Description:   artist.Description,
 			FormationYear: artist.FormationYear,
-			Albums:        []response.AlbumDTO{},
+			Albums:        albumDTOs,
 		})
 	}
 }

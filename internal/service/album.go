@@ -70,7 +70,17 @@ func (s *AlbumService) GetAlbum(ctx *gin.Context, strID string) (*model.Album, e
 }
 
 func (s *AlbumService) GetArtistAlbum(ctx *gin.Context, userID uint, albumID uint) (*model.Album, error) {
-	album, count, err := s.artistRepository.GetArtistAlbumByUserID(ctx, userID, albumID)
+	// Сначала проверяем, есть ли у пользователя артист
+	artist, err := s.artistRepository.GetByUserID(ctx, userID)
+	if err != nil {
+		if err.Error() == "artist not found" {
+			return nil, er.ErrArtistNotExists
+		}
+		return nil, &er.InternalError{Message: fmt.Sprintf("GetArtistAlbum: can't get artist: %s", err.Error())}
+	}
+
+	// Получаем альбом
+	album, err := s.albumRepository.GetByID(ctx, albumID)
 	if err != nil {
 		if err.Error() == "album not found" {
 			return nil, er.ErrAlbumNotExists
@@ -78,8 +88,18 @@ func (s *AlbumService) GetArtistAlbum(ctx *gin.Context, userID uint, albumID uin
 		return nil, &er.InternalError{Message: err.Error()}
 	}
 
-	if count <= 0 {
+	// Проверяем, что альбом принадлежит артисту пользователя
+	if album.ArtistID != artist.ID {
 		return nil, er.ErrAlbumNotExists
 	}
+
 	return album, nil
+}
+
+func (s *AlbumService) GetSongs(ctx *gin.Context, albumID uint) ([]model.Song, error) {
+	songs, err := s.albumRepository.GetSongsByAlbumID(ctx, albumID)
+	if err != nil {
+		return nil, &er.InternalError{Message: err.Error()}
+	}
+	return songs, nil
 }

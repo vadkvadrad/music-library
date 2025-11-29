@@ -13,11 +13,13 @@ import (
 
 type ProfileService struct {
 	profileRepository repository.IProfileRepository
+	artistRepository  repository.IArtistRepository
 }
 
-func NewProfileService(profile repository.IProfileRepository) *ProfileService {
+func NewProfileService(profile repository.IProfileRepository, artist repository.IArtistRepository) *ProfileService {
 	return &ProfileService{
 		profileRepository: profile,
+		artistRepository:  artist,
 	}
 }
 
@@ -45,4 +47,13 @@ func (s *ProfileService) GetProfile(c *gin.Context, userID uint) (*model.Profile
 		return nil, &er.InternalError{Message: "failed to get profile"}
 	}
 	return profile, nil
+}
+
+func (s *ProfileService) GetArtistByUserID(c *gin.Context, userID uint) (*model.Artist, error) {
+	artist, err := s.artistRepository.GetByUserID(c, userID)
+	if err != nil {
+		// Если артист не найден, это не ошибка - просто возвращаем nil
+		return nil, nil
+	}
+	return artist, nil
 }

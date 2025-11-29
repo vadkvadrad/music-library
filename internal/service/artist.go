@@ -114,3 +114,11 @@ func (s *ArtistService) UpdateArtist(ctx *gin.Context, id uint, req request.Upda
 	s.logger.Debug("Artist updated successfully")
 	return s.artistRepository.Update(ctx, artist)
 }
+
+func (s *ArtistService) GetAlbums(ctx *gin.Context, artistID uint) ([]model.Album, error) {
+	albums, err := s.artistRepository.GetAlbumsByArtistID(ctx, artistID)
+	if err != nil {
+		return nil, &er.InternalError{Message: err.Error()}
+	}
+	return albums, nil
+}

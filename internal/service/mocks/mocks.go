@@ -7,14 +7,15 @@ import (
 
 // MockArtistRepo для IArtistRepository
 type MockArtistRepo struct {
-	CreateFunc                func(ctx context.Context, entity *model.Artist) (*model.Artist, error)
-	UpdateFunc                func(ctx context.Context, entity *model.Artist) (*model.Artist, error)
-	DeleteFunc                func(ctx context.Context, id uint) error
-	SearchFunc                func(ctx context.Context, query string, limit, offset int) ([]model.Artist, int64, error)
-	GetByIDFunc               func(ctx context.Context, id uint) (*model.Artist, error)
-	GetByUserIDFunc           func(ctx context.Context, userID uint) (*model.Artist, error)
-	GetWithAlbumsFunc         func(ctx context.Context, id uint) (*model.Artist, error)
-	IsExistsFunc              func(ctx context.Context, name string) bool
+	CreateFunc                 func(ctx context.Context, entity *model.Artist) (*model.Artist, error)
+	UpdateFunc                 func(ctx context.Context, entity *model.Artist) (*model.Artist, error)
+	DeleteFunc                 func(ctx context.Context, id uint) error
+	SearchFunc                 func(ctx context.Context, query string, limit, offset int) ([]model.Artist, int64, error)
+	GetByIDFunc                func(ctx context.Context, id uint) (*model.Artist, error)
+	GetByUserIDFunc            func(ctx context.Context, userID uint) (*model.Artist, error)
+	GetWithAlbumsFunc          func(ctx context.Context, id uint) (*model.Artist, error)
+	GetAlbumsByArtistIDFunc    func(ctx context.Context, artistID uint) ([]model.Album, error)
+	IsExistsFunc               func(ctx context.Context, name string) bool
 	GetArtistAlbumByUserIDFunc func(ctx context.Context, userID uint, albumID uint) (*model.Album, int, error)
 }
 
@@ -50,18 +51,26 @@ func (m *MockArtistRepo) IsExists(ctx context.Context, name string) bool {
 	return m.IsExistsFunc(ctx, name)
 }
 
+func (m *MockArtistRepo) GetAlbumsByArtistID(ctx context.Context, artistID uint) ([]model.Album, error) {
+	if m.GetAlbumsByArtistIDFunc != nil {
+		return m.GetAlbumsByArtistIDFunc(ctx, artistID)
+	}
+	return []model.Album{}, nil
+}
+
 func (m *MockArtistRepo) GetArtistAlbumByUserID(ctx context.Context, userID uint, albumID uint) (*model.Album, int, error) {
 	return m.GetArtistAlbumByUserIDFunc(ctx, userID, albumID)
 }
 
 // MockAlbumRepo для IAlbumRepository
 type MockAlbumRepo struct {
-	CreateFunc        func(ctx context.Context, entity *model.Album) (*model.Album, error)
-	UpdateFunc        func(ctx context.Context, entity *model.Album) (*model.Album, error)
-	DeleteFunc        func(ctx context.Context, id uint) error
-	SearchFunc        func(ctx context.Context, query string, limit, offset int) ([]model.Album, int64, error)
-	GetByIDFunc       func(ctx context.Context, id uint) (*model.Album, error)
-	GetWithSongsFunc func(ctx context.Context, id uint) (*model.Album, error)
+	CreateFunc            func(ctx context.Context, entity *model.Album) (*model.Album, error)
+	UpdateFunc            func(ctx context.Context, entity *model.Album) (*model.Album, error)
+	DeleteFunc            func(ctx context.Context, id uint) error
+	SearchFunc            func(ctx context.Context, query string, limit, offset int) ([]model.Album, int64, error)
+	GetByIDFunc           func(ctx context.Context, id uint) (*model.Album, error)
+	GetWithSongsFunc      func(ctx context.Context, id uint) (*model.Album, error)
+	GetSongsByAlbumIDFunc func(ctx context.Context, albumID uint) ([]model.Song, error)
 }
 
 func (m *MockAlbumRepo) Create(ctx context.Context, entity *model.Album) (*model.Album, error) {
@@ -88,17 +97,24 @@ func (m *MockAlbumRepo) GetWithSongs(ctx context.Context, id uint) (*model.Album
 	return m.GetWithSongsFunc(ctx, id)
 }
 
+func (m *MockAlbumRepo) GetSongsByAlbumID(ctx context.Context, albumID uint) ([]model.Song, error) {
+	if m.GetSongsByAlbumIDFunc != nil {
+		return m.GetSongsByAlbumIDFunc(ctx, albumID)
+	}
+	return []model.Song{}, nil
+}
+
 // MockSongRepo для ISongRepository
 type MockSongRepo struct {
-	CreateFunc         func(ctx context.Context, entity *model.Song) (*model.Song, error)
-	UpdateFunc         func(ctx context.Context, entity *model.Song) (*model.Song, error)
-	DeleteFunc         func(ctx context.Context, id uint) error
-	SearchFunc         func(ctx context.Context, query string, limit, offset int) ([]model.Song, int64, error)
-	ExistsInAlbumFunc  func(ctx context.Context, albumID uint, songName string) bool
-	GetByIDFunc        func(ctx context.Context, id uint) (*model.Song, error)
-	GetByArtistIDFunc  func(ctx context.Context, artistID uint, sort string, limit, offset int) ([]model.Song, int64, error)
-	GetByAlbumIDFunc   func(ctx context.Context, albumID uint, sort string, limit, offset int) ([]model.Song, int64, error)
-	GetFullInfoFunc    func(ctx context.Context, id uint) (*model.Song, *model.Artist, *model.Album, error)
+	CreateFunc        func(ctx context.Context, entity *model.Song) (*model.Song, error)
+	UpdateFunc        func(ctx context.Context, entity *model.Song) (*model.Song, error)
+	DeleteFunc        func(ctx context.Context, id uint) error
+	SearchFunc        func(ctx context.Context, query string, limit, offset int) ([]model.Song, int64, error)
+	ExistsInAlbumFunc func(ctx context.Context, albumID uint, songName string) bool
+	GetByIDFunc       func(ctx context.Context, id uint) (*model.Song, error)
+	GetByArtistIDFunc func(ctx context.Context, artistID uint, sort string, limit, offset int) ([]model.Song, int64, error)
+	GetByAlbumIDFunc  func(ctx context.Context, albumID uint, sort string, limit, offset int) ([]model.Song, int64, error)
+	GetFullInfoFunc   func(ctx context.Context, id uint) (*model.Song, *model.Artist, *model.Album, error)
 }
 
 func (m *MockSongRepo) Create(ctx context.Context, entity *model.Song) (*model.Song, error) {
@@ -177,9 +193,9 @@ func (m *MockUserRepo) FindByKey(key, data string) (*model.User, error) {
 
 // MockProfileRepo для IProfileRepository
 type MockProfileRepo struct {
-	CreateFunc     func(ctx context.Context, entity *model.Profile) (*model.Profile, error)
-	UpdateFunc     func(ctx context.Context, entity *model.Profile) (*model.Profile, error)
-	DeleteFunc     func(ctx context.Context, id uint) error
+	CreateFunc      func(ctx context.Context, entity *model.Profile) (*model.Profile, error)
+	UpdateFunc      func(ctx context.Context, entity *model.Profile) (*model.Profile, error)
+	DeleteFunc      func(ctx context.Context, id uint) error
 	GetByUserIDFunc func(ctx context.Context, userID uint) (*model.Profile, error)
 }
 
@@ -254,9 +270,9 @@ func (m *MockSongGenreRepo) Delete(ctx context.Context, id uint) error {
 
 // MockPermissionRepo для IPermissionRepository
 type MockPermissionRepo struct {
-	CreateFunc       func(ctx context.Context, entity *model.ResourcePermission) (*model.ResourcePermission, error)
-	UpdateFunc       func(ctx context.Context, entity *model.ResourcePermission) (*model.ResourcePermission, error)
-	DeleteFunc       func(ctx context.Context, id uint) error
+	CreateFunc        func(ctx context.Context, entity *model.ResourcePermission) (*model.ResourcePermission, error)
+	UpdateFunc        func(ctx context.Context, entity *model.ResourcePermission) (*model.ResourcePermission, error)
+	DeleteFunc        func(ctx context.Context, id uint) error
 	HasPermissionFunc func(userID, resourceID uint, resourceType model.Resource, permission model.Permission) bool
 }
 

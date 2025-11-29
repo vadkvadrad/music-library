@@ -1,25 +1,50 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { musicApi } from '../api/music';
-import { NewArtistRequest } from '../types';
+import { profileApi } from '../api/profile';
+import { NewArtistRequest, UpdateArtistRequest } from '../types';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import Input from '../components/Input';
-import { Mic } from 'lucide-react';
+import { Mic, Edit } from 'lucide-react';
 
 export default function CreateArtistPage() {
   const navigate = useNavigate();
   const [error, setError] = useState<string>('');
 
+  const { data: profile } = useQuery({
+    queryKey: ['profile'],
+    queryFn: profileApi.getProfile,
+  });
+
+  const hasArtist = !!profile?.artist;
+
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<NewArtistRequest>();
+    reset,
+  } = useForm<NewArtistRequest | UpdateArtistRequest>({
+    defaultValues: hasArtist ? {
+      artist_name: profile.artist.name,
+      description: profile.artist.description,
+      formation_year: profile.artist.formation_year.split('T')[0],
+    } : undefined,
+  });
 
-  const mutation = useMutation({
+  useEffect(() => {
+    if (hasArtist && profile.artist) {
+      reset({
+        artist_name: profile.artist.name,
+        description: profile.artist.description,
+        formation_year: profile.artist.formation_year.split('T')[0],
+      });
+    }
+  }, [hasArtist, profile, reset]);
+
+  const createMutation = useMutation({
     mutationFn: musicApi.createArtist,
     onSuccess: (data) => {
       navigate(`/artist/${data.id}`);
@@ -29,16 +54,35 @@ export default function CreateArtistPage() {
     },
   });
 
-  const onSubmit = (data: NewArtistRequest) => {
+  const updateMutation = useMutation({
+    mutationFn: (data: UpdateArtistRequest) =>
+      musicApi.updateArtist(profile!.artist!.id, data),
+    onSuccess: () => {
+      navigate(`/artist/${profile!.artist!.id}`);
+    },
+    onError: (err: any) => {
+      setError(err.response?.data?.error || 'Ошибка при обновлении артиста');
+    },
+  });
+
+  const mutation = hasArtist ? updateMutation : createMutation;
+
+  const onSubmit = (data: NewArtistRequest | UpdateArtistRequest) => {
     setError('');
-    mutation.mutate(data);
+    mutation.mutate(data as any);
   };
 
   return (
     <div>
       <div className="flex items-center gap-4 mb-6">
-        <Mic className="h-8 w-8 text-primary-600" />
-        <h1 className="text-3xl font-bold">Создать артиста</h1>
+        {hasArtist ? (
+          <Edit className="h-8 w-8 text-primary-600" />
+        ) : (
+          <Mic className="h-8 w-8 text-primary-600" />
+        )}
+        <h1 className="text-3xl font-bold">
+          {hasArtist ? 'Редактировать артиста' : 'Создать артиста'}
+        </h1>
       </div>
 
       <Card>
@@ -84,7 +128,7 @@ export default function CreateArtistPage() {
             isLoading={mutation.isPending}
             className="w-full"
           >
-            Создать артиста
+            {hasArtist ? 'Сохранить изменения' : 'Создать артиста'}
           </Button>
         </form>
       </Card>

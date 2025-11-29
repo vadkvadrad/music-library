@@ -1,18 +1,28 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { musicApi } from '../api/music';
+import { profileApi } from '../api/profile';
 import Card from '../components/Card';
+import Button from '../components/Button';
 import { formatDate, formatDuration } from '../utils/format';
-import { Disc, Music } from 'lucide-react';
+import { Disc, Music, Edit, Plus } from 'lucide-react';
 
 export default function AlbumPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
 
   const { data: album, isLoading, error } = useQuery({
     queryKey: ['album', id],
     queryFn: () => musicApi.getAlbum(id!),
     enabled: !!id,
   });
+
+  const { data: profile } = useQuery({
+    queryKey: ['profile'],
+    queryFn: profileApi.getProfile,
+  });
+
+  const canEdit = profile?.artist && album && profile.artist.id === album.artist_id;
 
   if (isLoading) {
     return <div className="text-center py-12">Загрузка...</div>;
@@ -38,9 +48,22 @@ export default function AlbumPage() {
             />
           )}
           <div className="flex-1">
-            <div className="flex items-center gap-2 mb-4">
-              <Disc className="h-8 w-8 text-primary-600" />
-              <h1 className="text-4xl font-bold">{album.title}</h1>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Disc className="h-8 w-8 text-primary-600" />
+                <h1 className="text-4xl font-bold">{album.title}</h1>
+              </div>
+              {canEdit && (
+                <div className="flex gap-2">
+                  <Button
+                    variant="primary"
+                    onClick={() => navigate(`/create-song/${album.id}`)}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Добавить песню
+                  </Button>
+                </div>
+              )}
             </div>
             <p className="text-gray-600 text-lg mb-2">
               Дата выпуска: {formatDate(album.release_date)}

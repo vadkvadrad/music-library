@@ -32,6 +32,7 @@ type IArtistRepository interface {
 	GetByID(ctx context.Context, id uint) (*model.Artist, error)
 	GetByUserID(ctx context.Context, userID uint) (*model.Artist, error)
 	GetWithAlbums(ctx context.Context, id uint) (*model.Artist, error)
+	GetAlbumsByArtistID(ctx context.Context, artistID uint) ([]model.Album, error)
 	GetArtistAlbumByUserID(ctx context.Context, userID uint, albumID uint) (*model.Album, int, error)
 	IsExists(ctx context.Context, name string) bool
 }
@@ -43,6 +44,7 @@ type IAlbumRepository interface {
 
 	GetByID(ctx context.Context, id uint) (*model.Album, error)
 	GetWithSongs(ctx context.Context, id uint) (*model.Album, error)
+	GetSongsByAlbumID(ctx context.Context, albumID uint) ([]model.Song, error)
 }
 
 // Репозиторий песен

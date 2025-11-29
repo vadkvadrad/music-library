@@ -92,6 +92,7 @@ export default function CreateSongPage() {
             {...register('duration_sec', {
               required: 'Длительность обязательна',
               min: { value: 1, message: 'Длительность должна быть больше 0' },
+              valueAsNumber: true,
             })}
             error={errors.duration_sec?.message}
           />

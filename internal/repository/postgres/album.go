@@ -174,6 +174,46 @@ func (r *AlbumRepository) GetWithSongs(ctx context.Context, id uint) (*model.Alb
 	if err != nil {
 		return nil, err
 	}
-	// Songs будут загружаться отдельным запросом при необходимости
 	return album, nil
+}
+
+func (r *AlbumRepository) GetSongsByAlbumID(ctx context.Context, albumID uint) ([]model.Song, error) {
+	query := `
+		SELECT id, title, artist_id, album_id, duration, file_path, created_at, updated_at
+		FROM songs
+		WHERE album_id = $1
+		ORDER BY created_at DESC
+	`
+
+	rows, err := r.db.QueryContext(ctx, query, albumID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var songs []model.Song
+	for rows.Next() {
+		var song model.Song
+		var albumIDVal sql.NullInt64
+		err := rows.Scan(
+			&song.ID,
+			&song.Title,
+			&song.ArtistID,
+			&albumIDVal,
+			&song.Duration,
+			&song.FilePath,
+			&song.CreatedAt,
+			&song.UpdatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		if albumIDVal.Valid {
+			albumIDUint := uint(albumIDVal.Int64)
+			song.AlbumID = &albumIDUint
+		}
+		songs = append(songs, song)
+	}
+
+	return songs, rows.Err()
 }

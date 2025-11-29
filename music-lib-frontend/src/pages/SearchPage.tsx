@@ -78,7 +78,7 @@ export default function SearchPage() {
 
       {data && searchQuery && (
         <div className="space-y-8">
-          {data.artist && (
+          {data.artist && data.artist.data && data.artist.data.length > 0 && (
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <Mic className="h-6 w-6 text-primary-600" />
@@ -106,7 +106,7 @@ export default function SearchPage() {
             </div>
           )}
 
-          {data.album && (
+          {data.album && data.album.data && data.album.data.length > 0 && (
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <Disc className="h-6 w-6 text-primary-600" />
@@ -136,7 +136,7 @@ export default function SearchPage() {
             </div>
           )}
 
-          {data.song && (
+          {data.song && data.song.data && data.song.data.length > 0 && (
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <Music className="h-6 w-6 text-primary-600" />
@@ -164,9 +164,9 @@ export default function SearchPage() {
             </div>
           )}
 
-          {!data.artist?.data.length &&
-            !data.album?.data.length &&
-            !data.song?.data.length && (
+          {(!data.artist || !data.artist.data || data.artist.data.length === 0) &&
+            (!data.album || !data.album.data || data.album.data.length === 0) &&
+            (!data.song || !data.song.data || data.song.data.length === 0) && (
               <div className="text-center py-12 text-gray-500">
                 Ничего не найдено
               </div>
