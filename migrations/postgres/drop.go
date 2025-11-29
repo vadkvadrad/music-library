@@ -19,7 +19,7 @@ func DropTables(db *gorm.DB) error {
         "favorites",
         "profiles",
         "users",
-        "resource_permission",
+        "resource_permissions",
     }
 
     for _, table := range tables {

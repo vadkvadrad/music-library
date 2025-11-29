@@ -19,21 +19,23 @@ func NewUserRepository(db *DB) *UserRepository {
 
 func (r *UserRepository) Create(ctx context.Context, entity *model.User) (*model.User, error) {
 	query := `
-		INSERT INTO users (username, email, password_hash, first_name, last_name, avatar_url, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+		INSERT INTO users (name, email, password, role, session_id, code, is_verified, created_at, updated_at, deleted_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 		RETURNING id
 	`
 
 	var id uint
 	err := r.db.QueryRowContext(ctx, query,
-		entity.Username,
+		entity.Name,
 		entity.Email,
-		entity.PasswordHash,
-		entity.FirstName,
-		entity.LastName,
-		entity.AvatarURL,
+		entity.Password,
+		entity.Role,
+		entity.SessionId,
+		entity.Code,
+		entity.IsVerified,
 		entity.CreatedAt,
 		entity.UpdatedAt,
+		entity.DeletedAt,
 	).Scan(&id)
 
 	if err != nil {
@@ -47,17 +49,18 @@ func (r *UserRepository) Create(ctx context.Context, entity *model.User) (*model
 func (r *UserRepository) Update(ctx context.Context, entity *model.User) (*model.User, error) {
 	query := `
 		UPDATE users
-		SET username = $1, email = $2, password_hash = $3, first_name = $4, last_name = $5, avatar_url = $6, updated_at = $7
-		WHERE id = $8
+		SET name = $1, email = $2, password = $3, role = $4, session_id = $5, code = $6, is_verified = $7, updated_at = $8
+		WHERE id = $9
 	`
 
 	result, err := r.db.ExecContext(ctx, query,
-		entity.Username,
+		entity.Name,
 		entity.Email,
-		entity.PasswordHash,
-		entity.FirstName,
-		entity.LastName,
-		entity.AvatarURL,
+		entity.Password,
+		entity.Role,
+		entity.SessionId,
+		entity.Code,
+		entity.IsVerified,
 		entity.UpdatedAt,
 		entity.ID,
 	)
@@ -100,7 +103,7 @@ func (r *UserRepository) Delete(ctx context.Context, id uint) error {
 
 func (r *UserRepository) GetByID(ctx context.Context, id uint) (*model.User, error) {
 	query := `
-		SELECT id, username, email, password_hash, first_name, last_name, avatar_url, created_at, updated_at
+		SELECT id, name, email, password, role, session_id, code, is_verified, created_at, updated_at, deleted_at
 		FROM users
 		WHERE id = $1
 	`
@@ -108,14 +111,16 @@ func (r *UserRepository) GetByID(ctx context.Context, id uint) (*model.User, err
 	var user model.User
 	err := r.db.QueryRowContext(ctx, query, id).Scan(
 		&user.ID,
-		&user.Username,
+		&user.Name,
 		&user.Email,
-		&user.PasswordHash,
-		&user.FirstName,
-		&user.LastName,
-		&user.AvatarURL,
+		&user.Password,
+		&user.Role,
+		&user.SessionId,
+		&user.Code,
+		&user.IsVerified,
 		&user.CreatedAt,
 		&user.UpdatedAt,
+		&user.DeletedAt,
 	)
 	
 	if err != nil {
@@ -130,7 +135,7 @@ func (r *UserRepository) GetByID(ctx context.Context, id uint) (*model.User, err
 
 func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*model.User, error) {
 	query := `
-		SELECT id, username, email, password_hash, first_name, last_name, avatar_url, created_at, updated_at
+		SELECT id, name, email, password, role, session_id, code, is_verified, created_at, updated_at, deleted_at
 		FROM users
 		WHERE email = $1
 	`
@@ -138,14 +143,16 @@ func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*model.U
 	var user model.User
 	err := r.db.QueryRowContext(ctx, query, email).Scan(
 		&user.ID,
-		&user.Username,
+		&user.Name,
 		&user.Email,
-		&user.PasswordHash,
-		&user.FirstName,
-		&user.LastName,
-		&user.AvatarURL,
+		&user.Password,
+		&user.Role,
+		&user.SessionId,
+		&user.Code,
+		&user.IsVerified,
 		&user.CreatedAt,
 		&user.UpdatedAt,
+		&user.DeletedAt,
 	)
 	
 	if err != nil {
@@ -160,22 +167,24 @@ func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*model.U
 
 func (r *UserRepository) GetByUsername(ctx context.Context, username string) (*model.User, error) {
 	query := `
-		SELECT id, username, email, password_hash, first_name, last_name, avatar_url, created_at, updated_at
+		SELECT id, name, email, password, role, session_id, code, is_verified, created_at, updated_at, deleted_at
 		FROM users
-		WHERE username = $1
+		WHERE name = $1
 	`
 	
 	var user model.User
 	err := r.db.QueryRowContext(ctx, query, username).Scan(
 		&user.ID,
-		&user.Username,
+		&user.Name,
 		&user.Email,
-		&user.PasswordHash,
-		&user.FirstName,
-		&user.LastName,
-		&user.AvatarURL,
+		&user.Password,
+		&user.Role,
+		&user.SessionId,
+		&user.Code,
+		&user.IsVerified,
 		&user.CreatedAt,
 		&user.UpdatedAt,
+		&user.DeletedAt,
 	)
 	
 	if err != nil {

@@ -20,21 +20,23 @@ func NewUserRepository(db *db.Db) *UserRepository {
 
 func (repo *UserRepository) Create(ctx context.Context, user *model.User) (*model.User, error) {
 	query := `
-		INSERT INTO users (username, email, password_hash, first_name, last_name, avatar_url, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+		INSERT INTO users (name, email, password, role, session_id, code, is_verified, created_at, updated_at, deleted_at)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 		RETURNING id
 	`
 
 	var id uint
 	err := repo.Db.QueryRowContext(ctx, query,
-		user.Username,
+		user.Name,
 		user.Email,
-		user.PasswordHash,
-		user.FirstName,
-		user.LastName,
-		user.AvatarURL,
+		user.Password,
+		user.Role,
+		user.SessionId,
+		user.Code,
+		user.IsVerified,
 		user.CreatedAt,
 		user.UpdatedAt,
+		user.DeletedAt,
 	).Scan(&id)
 
 	if err != nil {
@@ -48,17 +50,18 @@ func (repo *UserRepository) Create(ctx context.Context, user *model.User) (*mode
 func (repo *UserRepository) Update(ctx context.Context, user *model.User) (*model.User, error) {
 	query := `
 		UPDATE users
-		SET username = $1, email = $2, password_hash = $3, first_name = $4, last_name = $5, avatar_url = $6, updated_at = $7
-		WHERE id = $8
+		SET name = $1, email = $2, password = $3, role = $4, session_id = $5, code = $6, is_verified = $7, updated_at = $8
+		WHERE id = $9
 	`
 
 	result, err := repo.Db.ExecContext(ctx, query,
-		user.Username,
+		user.Name,
 		user.Email,
-		user.PasswordHash,
-		user.FirstName,
-		user.LastName,
-		user.AvatarURL,
+		user.Password,
+		user.Role,
+		user.SessionId,
+		user.Code,
+		user.IsVerified,
 		user.UpdatedAt,
 		user.ID,
 	)
@@ -86,20 +89,22 @@ func (repo *UserRepository) FindByKey(ctx context.Context, key, data string) (*m
 	switch key {
 	case "id":
 		query = `
-			SELECT id, username, email, password_hash, first_name, last_name, avatar_url, created_at, updated_at
+			SELECT id, name, email, password, role, session_id, code, is_verified, created_at, updated_at, deleted_at
 			FROM users
 			WHERE id = $1
 		`
 		err := repo.Db.QueryRowContext(ctx, query, data).Scan(
 			&user.ID,
-			&user.Username,
+			&user.Name,
 			&user.Email,
-			&user.PasswordHash,
-			&user.FirstName,
-			&user.LastName,
-			&user.AvatarURL,
+			&user.Password,
+			&user.Role,
+			&user.SessionId,
+			&user.Code,
+			&user.IsVerified,
 			&user.CreatedAt,
 			&user.UpdatedAt,
+			&user.DeletedAt,
 		)
 		if err != nil {
 			if err == sql.ErrNoRows {
@@ -109,20 +114,22 @@ func (repo *UserRepository) FindByKey(ctx context.Context, key, data string) (*m
 		}
 	case "email":
 		query = `
-			SELECT id, username, email, password_hash, first_name, last_name, avatar_url, created_at, updated_at
+			SELECT id, name, email, password, role, session_id, code, is_verified, created_at, updated_at, deleted_at
 			FROM users
 			WHERE email = $1
 		`
 		err := repo.Db.QueryRowContext(ctx, query, data).Scan(
 			&user.ID,
-			&user.Username,
+			&user.Name,
 			&user.Email,
-			&user.PasswordHash,
-			&user.FirstName,
-			&user.LastName,
-			&user.AvatarURL,
+			&user.Password,
+			&user.Role,
+			&user.SessionId,
+			&user.Code,
+			&user.IsVerified,
 			&user.CreatedAt,
 			&user.UpdatedAt,
+			&user.DeletedAt,
 		)
 		if err != nil {
 			if err == sql.ErrNoRows {
@@ -132,20 +139,22 @@ func (repo *UserRepository) FindByKey(ctx context.Context, key, data string) (*m
 		}
 	case "username":
 		query = `
-			SELECT id, username, email, password_hash, first_name, last_name, avatar_url, created_at, updated_at
+			SELECT id, name, email, password, role, session_id, code, is_verified, created_at, updated_at, deleted_at
 			FROM users
-			WHERE username = $1
+			WHERE name = $1
 		`
 		err := repo.Db.QueryRowContext(ctx, query, data).Scan(
 			&user.ID,
-			&user.Username,
+			&user.Name,
 			&user.Email,
-			&user.PasswordHash,
-			&user.FirstName,
-			&user.LastName,
-			&user.AvatarURL,
+			&user.Password,
+			&user.Role,
+			&user.SessionId,
+			&user.Code,
+			&user.IsVerified,
 			&user.CreatedAt,
 			&user.UpdatedAt,
+			&user.DeletedAt,
 		)
 		if err != nil {
 			if err == sql.ErrNoRows {
