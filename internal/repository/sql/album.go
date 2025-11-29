@@ -1,18 +1,17 @@
-package postgres
+package sql
 
 import (
 	"context"
 	"database/sql"
 	"fmt"
 	"music-lib/internal/model"
-	"music-lib/pkg/db"
 )
 
 type AlbumRepository struct {
-	db *db.Db
+	db *DB
 }
 
-func NewAlbumRepository(db *db.Db) *AlbumRepository {
+func NewAlbumRepository(db *DB) *AlbumRepository {
 	return &AlbumRepository{
 		db: db,
 	}

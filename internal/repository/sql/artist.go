@@ -1,18 +1,17 @@
-package postgres
+package sql
 
 import (
 	"context"
 	"database/sql"
 	"fmt"
 	"music-lib/internal/model"
-	"music-lib/pkg/db"
 )
 
 type ArtistRepository struct {
-	db *db.Db
+	db *DB
 }
 
-func NewArtistRepository(db *db.Db) *ArtistRepository {
+func NewArtistRepository(db *DB) *ArtistRepository {
 	return &ArtistRepository{
 		db: db,
 	}
@@ -157,7 +156,6 @@ func (r *ArtistRepository) Search(ctx context.Context, query string, limit, offs
 	return artists, total, nil
 }
 
-// Реализация специфичных методов артиста
 func (r *ArtistRepository) GetByID(ctx context.Context, id uint) (*model.Artist, error) {
 	query := `
 		SELECT id, name, description, formation_year, user_id, created_at, updated_at
@@ -186,74 +184,14 @@ func (r *ArtistRepository) GetByID(ctx context.Context, id uint) (*model.Artist,
 	return &artist, nil
 }
 
-func (r *ArtistRepository) GetByUserID(ctx context.Context, userID uint) (*model.Artist, error) {
-	query := `
-		SELECT id, name, description, formation_year, user_id, created_at, updated_at
-		FROM artists
-		WHERE user_id = $1
-	`
-	
-	var artist model.Artist
-	err := r.db.QueryRowContext(ctx, query, userID).Scan(
-		&artist.ID,
-		&artist.Name,
-		&artist.Description,
-		&artist.FormationYear,
-		&artist.UserID,
-		&artist.CreatedAt,
-		&artist.UpdatedAt,
-	)
-	
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, fmt.Errorf("artist not found with user id %d", userID)
-		}
-		return nil, fmt.Errorf("error getting artist by user id: %w", err)
-	}
-	
-	// Загружаем альбомы артиста
-	albumsQuery := `
-		SELECT id, title, artist_id, release_date, cover_art_url, created_at, updated_at
-		FROM albums
-		WHERE artist_id = $1
-		ORDER BY release_date DESC
-	`
-	
-	rows, err := r.db.QueryContext(ctx, albumsQuery, artist.ID)
-	if err != nil {
-		return nil, fmt.Errorf("error getting albums for artist: %w", err)
-	}
-	defer rows.Close()
-	
-	var albums []model.Album
-	for rows.Next() {
-		var album model.Album
-		err := rows.Scan(
-			&album.ID,
-			&album.Title,
-			&album.ArtistID,
-			&album.ReleaseDate,
-			&album.CoverArtURL,
-			&album.CreatedAt,
-			&album.UpdatedAt,
-		)
-		if err != nil {
-			return nil, fmt.Errorf("error scanning album: %w", err)
-		}
-		albums = append(albums, album)
-	}
-	
-	artist.Albums = albums
-	return &artist, nil
-}
-
 func (r *ArtistRepository) GetWithAlbums(ctx context.Context, id uint) (*model.Artist, error) {
+	// Сначала получаем артиста
 	artist, err := r.GetByID(ctx, id)
 	if err != nil {
 		return nil, err
 	}
 	
-	// Загружаем альбомы артиста
+	// Затем получаем альбомы артиста
 	albumsQuery := `
 		SELECT id, title, artist_id, release_date, cover_art_url, created_at, updated_at
 		FROM albums
@@ -287,45 +225,4 @@ func (r *ArtistRepository) GetWithAlbums(ctx context.Context, id uint) (*model.A
 	
 	artist.Albums = albums
 	return artist, nil
-}
-
-func (r *ArtistRepository) IsExists(ctx context.Context, name string) bool {
-	query := `SELECT COUNT(*) FROM artists WHERE LOWER(name) = LOWER($1)`
-	
-	var count int64
-	err := r.db.QueryRowContext(ctx, query, name).Scan(&count)
-	if err != nil {
-		return false
-	}
-	
-	return count > 0
-}
-
-func (r *ArtistRepository) GetArtistAlbumByUserID(ctx context.Context, userID uint, albumID uint) (*model.Album, int, error) {
-	query := `
-		SELECT a.id, a.title, a.artist_id, a.release_date, a.cover_art_url, a.created_at, a.updated_at
-		FROM albums a
-		JOIN artists ar ON a.artist_id = ar.id
-		WHERE ar.user_id = $1 AND a.id = $2
-	`
-	
-	var album model.Album
-	err := r.db.QueryRowContext(ctx, query, userID, albumID).Scan(
-		&album.ID,
-		&album.Title,
-		&album.ArtistID,
-		&album.ReleaseDate,
-		&album.CoverArtURL,
-		&album.CreatedAt,
-		&album.UpdatedAt,
-	)
-	
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, 0, nil
-		}
-		return nil, 0, fmt.Errorf("error getting artist album by user id: %w", err)
-	}
-	
-	return &album, 1, nil
 }
