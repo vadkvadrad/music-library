@@ -48,11 +48,27 @@ func (h *Handler) AddSong() gin.HandlerFunc {
 			return
 		}
 
+		h.logger.Infow("Attempting to get album for song creation",
+			"user_id", user.Id,
+			"album_id", albumID,
+		)
+
 		album, err := h.services.Album.GetArtistAlbum(ctx, user.Id, uint(albumID))
 		if err != nil {
+			h.logger.Errorw("Failed to get album",
+				"user_id", user.Id,
+				"album_id", albumID,
+				"error", err.Error(),
+			)
 			ctx.Error(err)
 			return
 		}
+
+		h.logger.Infow("Album found successfully",
+			"album_id", album.ID,
+			"album_title", album.Title,
+			"artist_id", album.ArtistID,
+		)
 
 		h.logger.Infow("Adding new song",
 			"song_title", body.Title,

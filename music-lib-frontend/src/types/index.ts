@@ -80,6 +80,7 @@ export interface Profile {
     name: string;
     description: string;
     formation_year: string;
+    albums?: Album[];
   };
 }
 

@@ -90,7 +90,7 @@ func (s *AlbumService) GetArtistAlbum(ctx *gin.Context, userID uint, albumID uin
 
 	// Проверяем, что альбом принадлежит артисту пользователя
 	if album.ArtistID != artist.ID {
-		return nil, er.ErrAlbumNotExists
+		return nil, &er.InternalError{Message: fmt.Sprintf("GetArtistAlbum: album %d does not belong to artist %d (user's artist is %d)", albumID, album.ArtistID, artist.ID)}
 	}
 
 	return album, nil
