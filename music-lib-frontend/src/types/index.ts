@@ -71,6 +71,8 @@ export interface Genre {
 // Profile types
 export interface Profile {
   user_id: number;
+  user_name: string;
+  user_email: string;
   bio: string;
   avatar_url: string;
   created_at: string;

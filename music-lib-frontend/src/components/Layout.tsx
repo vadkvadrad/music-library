@@ -1,5 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
+import { profileApi } from '../api/profile';
 import { Search, User, LogOut, Music, Plus } from 'lucide-react';
 
 interface LayoutProps {
@@ -9,6 +11,14 @@ interface LayoutProps {
 export default function Layout({ children }: LayoutProps) {
   const { isAuthenticated, setToken } = useAuth();
   const navigate = useNavigate();
+
+  const { data: profile } = useQuery({
+    queryKey: ['profile'],
+    queryFn: profileApi.getProfile,
+    enabled: isAuthenticated,
+  });
+
+  const hasArtist = !!profile?.artist;
 
   const handleLogout = () => {
     setToken(null);
@@ -36,13 +46,15 @@ export default function Layout({ children }: LayoutProps) {
             <div className="flex items-center space-x-4">
               {isAuthenticated ? (
                 <>
-                  <Link
-                    to="/create-artist"
-                    className="flex items-center space-x-1 text-gray-700 hover:text-primary-600 transition-colors"
-                  >
-                    <Plus className="h-5 w-5" />
-                    <span>Создать артиста</span>
-                  </Link>
+                  {!hasArtist && (
+                    <Link
+                      to="/create-artist"
+                      className="flex items-center space-x-1 text-gray-700 hover:text-primary-600 transition-colors"
+                    >
+                      <Plus className="h-5 w-5" />
+                      <span>Создать артиста</span>
+                    </Link>
+                  )}
                   <Link
                     to="/profile"
                     className="flex items-center space-x-1 text-gray-700 hover:text-primary-600 transition-colors"

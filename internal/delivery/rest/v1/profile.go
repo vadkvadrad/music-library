@@ -58,11 +58,20 @@ func (h *Handler) GetProfile() gin.HandlerFunc {
 			return
 		}
 
+		// Получаем данные пользователя
+		userData, err := h.services.Profile.GetUserByID(user.Id)
+		if err != nil {
+			ctx.Error(err)
+			return
+		}
+
 		// Проверяем, есть ли у пользователя артист
 		artist, _ := h.services.Profile.GetArtistByUserID(ctx, user.Id)
 
 		response := map[string]interface{}{
 			"user_id":    profile.UserID,
+			"user_name":  userData.Name,
+			"user_email": userData.Email,
 			"bio":        profile.Bio,
 			"avatar_url": profile.AvatarURL,
 			"created_at": profile.CreatedAt,

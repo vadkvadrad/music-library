@@ -123,6 +123,14 @@ export default function ProfilePage() {
               className="w-32 h-32 rounded-full object-cover mb-4"
             />
           )}
+          <div className="mb-4">
+            <h2 className="text-xl font-semibold mb-2">Имя пользователя</h2>
+            <p className="text-gray-700 font-medium">{profile?.user_name || 'Не указано'}</p>
+          </div>
+          <div className="mb-4">
+            <h2 className="text-xl font-semibold mb-2">Email</h2>
+            <p className="text-gray-700">{profile?.user_email || 'Не указано'}</p>
+          </div>
           {profile?.artist && (
             <div className="mb-4">
               <h2 className="text-xl font-semibold mb-2">Артист</h2>

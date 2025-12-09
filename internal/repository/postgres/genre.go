@@ -6,6 +6,8 @@ import (
 	"errors"
 	"music-lib/internal/model"
 	"music-lib/pkg/db"
+
+	"github.com/lib/pq"
 )
 
 type GenreRepository struct {
@@ -103,10 +105,16 @@ func (r *GenreRepository) GetByIds(ctx context.Context, ids []uint) ([]model.Gen
 		return []model.Genre{}, nil
 	}
 
-	// Используем ANY для массива
-	query := `SELECT id, name FROM genres WHERE id = ANY($1::int[])`
+	// Конвертируем []uint в []int для PostgreSQL
+	intIds := make([]int, len(ids))
+	for i, id := range ids {
+		intIds[i] = int(id)
+	}
 
-	rows, err := r.db.QueryContext(ctx, query, ids)
+	// Используем ANY для массива
+	query := `SELECT id, name FROM genres WHERE id = ANY($1)`
+
+	rows, err := r.db.QueryContext(ctx, query, pq.Array(intIds))
 	if err != nil {
 		return nil, err
 	}

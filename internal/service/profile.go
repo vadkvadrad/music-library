@@ -14,12 +14,14 @@ import (
 type ProfileService struct {
 	profileRepository repository.IProfileRepository
 	artistRepository  repository.IArtistRepository
+	userRepository    repository.IUserRepository
 }
 
-func NewProfileService(profile repository.IProfileRepository, artist repository.IArtistRepository) *ProfileService {
+func NewProfileService(profile repository.IProfileRepository, artist repository.IArtistRepository, user repository.IUserRepository) *ProfileService {
 	return &ProfileService{
 		profileRepository: profile,
 		artistRepository:  artist,
+		userRepository:    user,
 	}
 }
 
@@ -56,4 +58,12 @@ func (s *ProfileService) GetArtistByUserID(c *gin.Context, userID uint) (*model.
 		return nil, nil
 	}
 	return artist, nil
+}
+
+func (s *ProfileService) GetUserByID(userID uint) (*model.User, error) {
+	user, err := s.userRepository.FindByKey("id", fmt.Sprintf("%d", userID))
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
 }
