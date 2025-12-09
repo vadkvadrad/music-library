@@ -40,15 +40,24 @@ export default function ProfilePage() {
   };
 
   if (isLoading) {
-    return <div className="text-center py-12">Загрузка...</div>;
+    return (
+      <div className="text-center py-12">
+        <div className="inline-block w-8 h-8 border-4 border-primary-600/30 border-t-primary-600 rounded-full animate-spin" />
+      </div>
+    );
   }
 
   if (!profile && !isEditing) {
     return (
-      <div>
-        <h1 className="text-3xl font-bold mb-6">Профиль</h1>
+      <div className="animate-fade-in">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="p-2 rounded-xl bg-primary-600/20">
+            <User className="h-6 w-6 text-primary-400" />
+          </div>
+          <h1 className="text-3xl font-bold text-white">Профиль</h1>
+        </div>
         <Card>
-          <p className="text-gray-600 mb-4">У вас еще нет профиля</p>
+          <p className="text-gray-400 mb-6">У вас еще нет профиля</p>
           <Button onClick={() => setIsEditing(true)} variant="primary">
             Создать профиль
           </Button>
@@ -58,17 +67,19 @@ export default function ProfilePage() {
   }
 
   return (
-    <div>
-      <div className="flex items-center gap-4 mb-6">
-        <User className="h-8 w-8 text-primary-600" />
-        <h1 className="text-3xl font-bold">Профиль</h1>
+    <div className="animate-fade-in">
+      <div className="flex items-center gap-3 mb-8">
+        <div className="p-2 rounded-xl bg-primary-600/20">
+          <User className="h-6 w-6 text-primary-400" />
+        </div>
+        <h1 className="text-3xl font-bold text-white">Профиль</h1>
       </div>
 
       {isEditing ? (
         <Card>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-300 mb-2">
                 Биография
               </label>
               <textarea
@@ -79,7 +90,7 @@ export default function ProfilePage() {
                 rows={4}
               />
               {errors.bio && (
-                <p className="mt-1 text-sm text-red-600">{errors.bio.message}</p>
+                <p className="mt-1 text-sm text-red-400">{errors.bio.message}</p>
               )}
             </div>
 
@@ -120,47 +131,47 @@ export default function ProfilePage() {
             <img
               src={profile.avatar_url}
               alt="Avatar"
-              className="w-32 h-32 rounded-full object-cover mb-4"
+              className="w-32 h-32 rounded-full object-cover mb-6 border-4 border-primary-500/30 shadow-medium"
             />
           )}
-          <div className="mb-4">
-            <h2 className="text-xl font-semibold mb-2">Имя пользователя</h2>
-            <p className="text-gray-700 font-medium">{profile?.user_name || 'Не указано'}</p>
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold mb-2 text-white">Имя пользователя</h2>
+            <p className="text-gray-300 font-medium">{profile?.user_name || 'Не указано'}</p>
           </div>
-          <div className="mb-4">
-            <h2 className="text-xl font-semibold mb-2">Email</h2>
-            <p className="text-gray-700">{profile?.user_email || 'Не указано'}</p>
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold mb-2 text-white">Email</h2>
+            <p className="text-gray-300">{profile?.user_email || 'Не указано'}</p>
           </div>
           {profile?.artist && (
-            <div className="mb-4">
-              <h2 className="text-xl font-semibold mb-2">Артист</h2>
-              <p className="text-gray-700 font-medium">{profile.artist.name}</p>
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold mb-2 text-white">Артист</h2>
+              <p className="text-gray-300 font-medium">{profile.artist.name}</p>
             </div>
           )}
-          <div className="mb-4">
-            <h2 className="text-xl font-semibold mb-2">Биография</h2>
-            <p className="text-gray-700">{profile?.bio}</p>
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold mb-2 text-white">Биография</h2>
+            <p className="text-gray-300 leading-relaxed">{profile?.bio}</p>
           </div>
           {profile?.created_at && (
-            <p className="text-gray-500 text-sm">
+            <p className="text-gray-500 text-sm mb-6">
               Создан: {formatDate(profile.created_at)}
             </p>
           )}
           
           {profile?.artist && (
-            <div className="mt-6 p-4 bg-primary-50 rounded-lg border border-primary-200">
-              <h3 className="text-lg font-semibold mb-2">Ваш артист</h3>
-              <p className="text-gray-700 mb-2">
-                <strong>{profile.artist.name}</strong>
+            <div className="mt-6 p-6 bg-primary-600/10 rounded-xl border border-primary-500/30">
+              <h3 className="text-lg font-semibold mb-3 text-white">Ваш артист</h3>
+              <p className="text-gray-300 mb-2 font-medium">
+                {profile.artist.name}
               </p>
               {profile.artist.description && (
-                <p className="text-gray-600 text-sm mb-2">
+                <p className="text-gray-400 text-sm mb-4">
                   {profile.artist.description}
                 </p>
               )}
               <a
                 href={`/artist/${profile.artist.id}`}
-                className="text-primary-600 hover:underline text-sm"
+                className="text-primary-400 hover:text-primary-300 transition-colors text-sm font-medium"
               >
                 Посмотреть профиль артиста →
               </a>
@@ -173,7 +184,7 @@ export default function ProfilePage() {
               reset(profile);
             }}
             variant="primary"
-            className="mt-4"
+            className="mt-6"
           >
             Редактировать
           </Button>

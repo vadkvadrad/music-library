@@ -26,30 +26,34 @@ export default function Layout({ children }: LayoutProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-md">
+    <div className="min-h-screen bg-gradient-dark">
+      <nav className="bg-dark-light/80 backdrop-blur-xl border-b border-gray-800/50 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
-            <div className="flex items-center space-x-8">
-              <Link to="/" className="flex items-center space-x-2">
-                <Music className="h-6 w-6 text-primary-600" />
-                <span className="text-xl font-bold text-gray-900">Music Library</span>
+            <div className="flex items-center space-x-6">
+              <Link to="/" className="flex items-center space-x-2 group">
+                <div className="p-2 rounded-xl bg-gradient-primary group-hover:scale-110 transition-transform duration-300">
+                  <Music className="h-5 w-5 text-white" />
+                </div>
+                <span className="text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                  Music Library
+                </span>
               </Link>
               <Link
                 to="/search"
-                className="flex items-center space-x-1 text-gray-700 hover:text-primary-600 transition-colors"
+                className="nav-link"
               >
                 <Search className="h-5 w-5" />
                 <span>Поиск</span>
               </Link>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-3">
               {isAuthenticated ? (
                 <>
                   {!hasArtist && (
                     <Link
                       to="/create-artist"
-                      className="flex items-center space-x-1 text-gray-700 hover:text-primary-600 transition-colors"
+                      className="nav-link"
                     >
                       <Plus className="h-5 w-5" />
                       <span>Создать артиста</span>
@@ -57,14 +61,14 @@ export default function Layout({ children }: LayoutProps) {
                   )}
                   <Link
                     to="/profile"
-                    className="flex items-center space-x-1 text-gray-700 hover:text-primary-600 transition-colors"
+                    className="nav-link"
                   >
                     <User className="h-5 w-5" />
                     <span>Профиль</span>
                   </Link>
                   <button
                     onClick={handleLogout}
-                    className="flex items-center space-x-1 text-gray-700 hover:text-red-600 transition-colors"
+                    className="nav-link text-red-400 hover:text-red-300 hover:bg-red-500/10"
                   >
                     <LogOut className="h-5 w-5" />
                     <span>Выйти</span>

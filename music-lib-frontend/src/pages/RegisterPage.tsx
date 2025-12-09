@@ -6,6 +6,7 @@ import { authApi } from '../api/auth';
 import { RegisterRequest } from '../types';
 import Button from '../components/Button';
 import Input from '../components/Input';
+import Card from '../components/Card';
 import { Music } from 'lucide-react';
 
 export default function RegisterPage() {
@@ -36,19 +37,21 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-primary-100">
-      <div className="max-w-md w-full">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-dark p-4">
+      <div className="max-w-md w-full animate-fade-in">
+        <Card className="p-8">
           <div className="text-center mb-8">
             <div className="flex justify-center mb-4">
-              <Music className="h-12 w-12 text-primary-600" />
+              <div className="p-3 rounded-xl bg-gradient-primary shadow-glow">
+                <Music className="h-10 w-10 text-white" />
+              </div>
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">Регистрация</h1>
-            <p className="text-gray-600 mt-2">Создайте новую учетную запись</p>
+            <h1 className="text-3xl font-bold text-white mb-2">Регистрация</h1>
+            <p className="text-gray-400">Создайте новую учетную запись</p>
           </div>
 
           {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700">
+            <div className="mb-4 p-4 bg-red-500/20 border border-red-500/30 rounded-xl text-red-400">
               {error}
             </div>
           )}
@@ -103,14 +106,14 @@ export default function RegisterPage() {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-gray-600">
+            <p className="text-gray-400">
               Уже есть аккаунт?{' '}
-              <Link to="/login" className="text-primary-600 hover:underline">
+              <Link to="/login" className="text-primary-400 hover:text-primary-300 transition-colors font-medium">
                 Войти
               </Link>
             </p>
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   );
