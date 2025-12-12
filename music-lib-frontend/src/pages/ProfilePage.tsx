@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { profileApi } from '../api/profile';
 import { useForm } from 'react-hook-form';
-import { NewProfileRequest } from '../types';
+import { NewProfileRequest, UpdateProfileRequest } from '../types';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import Input from '../components/Input';
@@ -18,16 +18,27 @@ export default function ProfilePage() {
     queryFn: profileApi.getProfile,
   });
 
+  const hasProfile = !!profile;
+
   const {
     register,
     handleSubmit,
     formState: { errors },
     reset,
-  } = useForm<NewProfileRequest>({
+  } = useForm<NewProfileRequest | UpdateProfileRequest>({
     defaultValues: profile,
   });
 
-  const mutation = useMutation({
+  useEffect(() => {
+    if (profile) {
+      reset({
+        bio: profile.bio,
+        avatar_url: profile.avatar_url,
+      });
+    }
+  }, [profile, reset]);
+
+  const createMutation = useMutation({
     mutationFn: profileApi.createProfile,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profile'] });
@@ -35,8 +46,22 @@ export default function ProfilePage() {
     },
   });
 
-  const onSubmit = (data: NewProfileRequest) => {
-    mutation.mutate(data);
+  const updateMutation = useMutation({
+    mutationFn: profileApi.updateProfile,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      setIsEditing(false);
+    },
+  });
+
+  const mutation = hasProfile ? updateMutation : createMutation;
+
+  const onSubmit = (data: NewProfileRequest | UpdateProfileRequest) => {
+    if (hasProfile) {
+      updateMutation.mutate(data);
+    } else {
+      createMutation.mutate(data as NewProfileRequest);
+    }
   };
 
   if (isLoading) {
@@ -84,7 +109,7 @@ export default function ProfilePage() {
               </label>
               <textarea
                 {...register('bio', {
-                  required: 'Биография обязательна',
+                  required: !hasProfile ? 'Биография обязательна' : false,
                 })}
                 className="input min-h-[100px]"
                 rows={4}
@@ -98,7 +123,7 @@ export default function ProfilePage() {
               label="URL аватара"
               type="url"
               {...register('avatar_url', {
-                required: 'URL аватара обязателен',
+                required: !hasProfile ? 'URL аватара обязателен' : false,
               })}
               error={errors.avatar_url?.message}
             />

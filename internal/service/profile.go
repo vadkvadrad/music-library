@@ -67,3 +67,23 @@ func (s *ProfileService) GetUserByID(userID uint) (*model.User, error) {
 	}
 	return user, nil
 }
+
+func (s *ProfileService) UpdateProfile(c *gin.Context, userID uint, body request.UpdateProfileRequest) (*model.Profile, error) {
+	profile, err := s.profileRepository.GetByUserID(c, userID)
+	if err != nil {
+		if err.Error() == "profile not found" {
+			return nil, &er.NotFoundError{Message: fmt.Sprintf("profile not found for user ID %d", userID)}
+		}
+		return nil, &er.InternalError{Message: "failed to get profile"}
+	}
+
+	if body.Bio != "" {
+		profile.Bio = body.Bio
+	}
+
+	if body.AvatarURL != "" {
+		profile.AvatarURL = body.AvatarURL
+	}
+
+	return s.profileRepository.Update(c, profile)
+}

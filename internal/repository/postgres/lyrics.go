@@ -27,7 +27,9 @@ func (r *LyricsRepository) GetBySongID(ctx context.Context, songID uint) (*model
 		WHERE song_id = $1
 	`
 
-	err := r.db.QueryRowContext(ctx, query, songID).Scan(
+	// Конвертируем uint в int для PostgreSQL
+	songIDInt := int(songID)
+	err := r.db.QueryRowContext(ctx, query, songIDInt).Scan(
 		&lyrics.SongID,
 		&lyrics.CreatedAt,
 		&lyrics.UpdatedAt,
@@ -48,7 +50,7 @@ func (r *LyricsRepository) GetBySongID(ctx context.Context, songID uint) (*model
 		ORDER BY number ASC
 	`
 
-	rows, err := r.db.QueryContext(ctx, coupletsQuery, songID)
+	rows, err := r.db.QueryContext(ctx, coupletsQuery, songIDInt)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +84,8 @@ func (r *LyricsRepository) Upsert(ctx context.Context, lyrics *model.Lyrics) err
 	`
 
 	now := time.Now()
-	err := r.db.QueryRowContext(ctx, query, lyrics.SongID, now, now).Scan(
+	songIDInt := int(lyrics.SongID)
+	err := r.db.QueryRowContext(ctx, query, songIDInt, now, now).Scan(
 		&lyrics.CreatedAt,
 		&lyrics.UpdatedAt,
 	)
@@ -92,7 +95,7 @@ func (r *LyricsRepository) Upsert(ctx context.Context, lyrics *model.Lyrics) err
 
 	// Удаляем старые куплеты
 	deleteQuery := `DELETE FROM couplets WHERE lyrics_id = $1`
-	_, err = r.db.ExecContext(ctx, deleteQuery, lyrics.SongID)
+	_, err = r.db.ExecContext(ctx, deleteQuery, songIDInt)
 	if err != nil {
 		return err
 	}
@@ -107,8 +110,9 @@ func (r *LyricsRepository) Upsert(ctx context.Context, lyrics *model.Lyrics) err
 
 		for i := range lyrics.Couplets {
 			lyrics.Couplets[i].LyricsID = lyrics.SongID
+			lyricsIDInt := int(lyrics.Couplets[i].LyricsID)
 			err := r.db.QueryRowContext(ctx, insertCoupletQuery,
-				lyrics.Couplets[i].LyricsID,
+				lyricsIDInt,
 				lyrics.Couplets[i].Number,
 				lyrics.Couplets[i].Text,
 			).Scan(&lyrics.Couplets[i].ID)
@@ -122,16 +126,19 @@ func (r *LyricsRepository) Upsert(ctx context.Context, lyrics *model.Lyrics) err
 }
 
 func (r *LyricsRepository) DeleteBySongID(ctx context.Context, songID uint) error {
+	// Конвертируем uint в int для PostgreSQL
+	songIDInt := int(songID)
+	
 	// Удаляем куплеты (каскадное удаление должно сработать, но для надежности удаляем явно)
 	deleteCoupletsQuery := `DELETE FROM couplets WHERE lyrics_id = $1`
-	_, err := r.db.ExecContext(ctx, deleteCoupletsQuery, songID)
+	_, err := r.db.ExecContext(ctx, deleteCoupletsQuery, songIDInt)
 	if err != nil {
 		return err
 	}
 
 	// Удаляем lyrics
 	deleteQuery := `DELETE FROM lyrics WHERE song_id = $1`
-	result, err := r.db.ExecContext(ctx, deleteQuery, songID)
+	result, err := r.db.ExecContext(ctx, deleteQuery, songIDInt)
 	if err != nil {
 		return err
 	}

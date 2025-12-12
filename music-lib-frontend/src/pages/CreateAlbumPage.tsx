@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { musicApi } from '../api/music';
-import { NewAlbumRequest } from '../types';
+import { NewAlbumRequest, UpdateAlbumRequest } from '../types';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import Input from '../components/Input';
@@ -11,17 +11,42 @@ import { Disc } from 'lucide-react';
 
 export default function CreateAlbumPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const queryClient = useQueryClient();
   const [error, setError] = useState<string>('');
+  
+  const albumId = location.state?.albumId;
+  const isEditing = !!albumId;
+
+  const { data: album } = useQuery({
+    queryKey: ['album', albumId],
+    queryFn: () => musicApi.getAlbum(albumId!.toString()),
+    enabled: isEditing && !!albumId,
+  });
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<NewAlbumRequest>();
+    reset,
+  } = useForm<NewAlbumRequest | UpdateAlbumRequest>({
+    defaultValues: album,
+  });
 
-  const mutation = useMutation({
+  useEffect(() => {
+    if (album) {
+      reset({
+        title: album.title,
+        release_date: album.release_date.split('T')[0], // Форматируем дату для input type="date"
+        cover_art_url: album.cover_art_url,
+      });
+    }
+  }, [album, reset]);
+
+  const createMutation = useMutation({
     mutationFn: musicApi.createAlbum,
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
       navigate('/');
     },
     onError: (err: any) => {
@@ -29,21 +54,41 @@ export default function CreateAlbumPage() {
     },
   });
 
-  const onSubmit = (data: NewAlbumRequest) => {
+  const updateMutation = useMutation({
+    mutationFn: (data: UpdateAlbumRequest) => musicApi.updateAlbum(albumId!, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['album', albumId] });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      navigate(`/album/${albumId}`);
+    },
+    onError: (err: any) => {
+      setError(err.response?.data?.error || 'Ошибка при обновлении альбома');
+    },
+  });
+
+  const onSubmit = (data: NewAlbumRequest | UpdateAlbumRequest) => {
     setError('');
-    mutation.mutate(data);
+    if (isEditing) {
+      updateMutation.mutate(data);
+    } else {
+      createMutation.mutate(data as NewAlbumRequest);
+    }
   };
 
+  const isLoading = createMutation.isPending || updateMutation.isPending;
+
   return (
-    <div>
-      <div className="flex items-center gap-4 mb-6">
-        <Disc className="h-8 w-8 text-primary-600" />
-        <h1 className="text-3xl font-bold">Создать альбом</h1>
+    <div className="animate-fade-in">
+      <div className="flex items-center gap-3 mb-8">
+        <div className="p-2 rounded-xl bg-primary-600/20">
+          <Disc className="h-6 w-6 text-primary-400" />
+        </div>
+        <h1 className="text-3xl font-bold text-white">{isEditing ? 'Редактировать альбом' : 'Создать альбом'}</h1>
       </div>
 
       <Card>
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700">
+          <div className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-xl text-red-400">
             {error}
           </div>
         )}
@@ -52,7 +97,7 @@ export default function CreateAlbumPage() {
           <Input
             label="Название альбома"
             {...register('title', {
-              required: 'Название альбома обязательно',
+              required: !isEditing ? 'Название альбома обязательно' : false,
             })}
             error={errors.title?.message}
             placeholder="Название альбома"
@@ -62,7 +107,7 @@ export default function CreateAlbumPage() {
             label="Дата выпуска"
             type="date"
             {...register('release_date', {
-              required: 'Дата выпуска обязательна',
+              required: !isEditing ? 'Дата выпуска обязательна' : false,
             })}
             error={errors.release_date?.message}
           />
@@ -71,7 +116,7 @@ export default function CreateAlbumPage() {
             label="URL обложки"
             type="url"
             {...register('cover_art_url', {
-              required: 'URL обложки обязателен',
+              required: !isEditing ? 'URL обложки обязателен' : false,
             })}
             error={errors.cover_art_url?.message}
             placeholder="https://example.com/cover.jpg"
@@ -80,10 +125,10 @@ export default function CreateAlbumPage() {
           <Button
             type="submit"
             variant="primary"
-            isLoading={mutation.isPending}
+            isLoading={isLoading}
             className="w-full"
           >
-            Создать альбом
+            {isEditing ? 'Сохранить изменения' : 'Создать альбом'}
           </Button>
         </form>
       </Card>

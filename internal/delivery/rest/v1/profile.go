@@ -16,6 +16,7 @@ func (h *Handler) initProfileRoutes(api *gin.RouterGroup) {
 	{
 		profile.POST("", h.NewProfile())
 		profile.GET("", h.GetProfile())
+		profile.PATCH("", h.UpdateProfile())
 	}
 }
 
@@ -107,5 +108,35 @@ func (h *Handler) GetProfile() gin.HandlerFunc {
 		}
 
 		ctx.JSON(http.StatusOK, response)
+	}
+}
+
+func (h *Handler) UpdateProfile() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		var body request.UpdateProfileRequest
+
+		if err := ctx.ShouldBindJSON(&body); err != nil {
+			ctx.Error(er.ValidationError{Message: err.Error()})
+			return
+		}
+
+		user, ok := middleware.GetUserData(ctx)
+		if !ok {
+			ctx.Error(er.ErrNotAuthorized)
+			return
+		}
+
+		profile, err := h.services.Profile.UpdateProfile(ctx, user.Id, body)
+		if err != nil {
+			ctx.Error(err)
+			return
+		}
+
+		ctx.JSON(http.StatusOK, gin.H{
+			"user_id":    profile.UserID,
+			"bio":        profile.Bio,
+			"avatar_url": profile.AvatarURL,
+			"updated_at": profile.UpdatedAt,
+		})
 	}
 }

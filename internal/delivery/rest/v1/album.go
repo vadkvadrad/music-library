@@ -7,6 +7,7 @@ import (
 	"music-lib/internal/model"
 	"music-lib/pkg/er"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -19,6 +20,8 @@ func (h *Handler) initAlbumRoutes(api *gin.RouterGroup) {
 	album.Use(middleware.AuthMiddleware(h.config))
 	{
 		album.POST("", h.NewAlbum())
+		album.PATCH("/:id", h.UpdateAlbum())
+		album.GET("/:id/has-permission", h.HasAlbumPermission())
 	}
 }
 
@@ -84,6 +87,71 @@ func (h *Handler) GetAlbum() gin.HandlerFunc {
 			CoverArtURL: album.CoverArtURL,
 			ArtistID:    album.ArtistID,
 			Songs:       songDTOs,
+		})
+	}
+}
+
+func (h *Handler) UpdateAlbum() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		strID := ctx.Param("id")
+		id, err := strconv.Atoi(strID)
+		if err != nil {
+			ctx.Error(&er.ValidationError{Message: err.Error()})
+			return
+		}
+
+		var body request.UpdateAlbumRequest
+		if err := ctx.ShouldBindJSON(&body); err != nil {
+			ctx.Error(err)
+			return
+		}
+
+		user, ok := middleware.GetUserData(ctx)
+		if !ok {
+			ctx.Error(er.ErrNotAuthorized)
+			return
+		}
+
+		if !h.services.Permission.HasPermission(user.Id, uint(id), model.AlbumResource, model.EditPermission) {
+			ctx.Error(er.ErrWrongUserCredentials)
+			return
+		}
+
+		album, err := h.services.Album.UpdateAlbum(ctx, uint(id), body)
+		if err != nil {
+			ctx.Error(err)
+			return
+		}
+
+		ctx.JSON(http.StatusOK, response.AlbumDTO{
+			ID:          album.ID,
+			Title:       album.Title,
+			ReleaseDate: album.ReleaseDate,
+			CoverArtURL: album.CoverArtURL,
+			ArtistID:    album.ArtistID,
+		})
+	}
+}
+
+func (h *Handler) HasAlbumPermission() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		strID := ctx.Param("id")
+		id, err := strconv.Atoi(strID)
+		if err != nil {
+			ctx.Error(&er.ValidationError{Message: err.Error()})
+			return
+		}
+
+		user, ok := middleware.GetUserData(ctx)
+		if !ok {
+			ctx.Error(er.ErrNotAuthorized)
+			return
+		}
+
+		hasPermission := h.services.Permission.HasPermission(user.Id, uint(id), model.AlbumResource, model.EditPermission)
+
+		ctx.JSON(http.StatusOK, gin.H{
+			"has_permission": hasPermission,
 		})
 	}
 }

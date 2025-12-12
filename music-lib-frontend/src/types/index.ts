@@ -91,6 +91,11 @@ export interface NewProfileRequest {
   avatar_url: string;
 }
 
+export interface UpdateProfileRequest {
+  bio?: string;
+  avatar_url?: string;
+}
+
 // Request types
 export interface NewArtistRequest {
   artist_name: string;
@@ -108,6 +113,12 @@ export interface NewAlbumRequest {
   title: string;
   release_date: string;
   cover_art_url: string;
+}
+
+export interface UpdateAlbumRequest {
+  title?: string;
+  release_date?: string;
+  cover_art_url?: string;
 }
 
 export interface NewSongRequest {

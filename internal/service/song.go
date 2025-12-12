@@ -138,14 +138,21 @@ func (s *SongService) addLyrics(ctx context.Context, songID uint, req request.Ad
 	return s.lyricsRepo.Upsert(ctx, &lyrics)
 }
 
-func (s *SongService) GetSong(ctx context.Context, songID uint) (*model.Song, error) {
+func (s *SongService) GetSong(ctx context.Context, songID uint) (*model.Song, *model.Lyrics, error) {
 	song, err := s.songRepo.GetByID(ctx, songID)
 	if err != nil {
 		if err.Error() == "song not found" {
-			return nil, er.ErrSongNotExists
+			return nil, nil, er.ErrSongNotExists
 		}
-		return nil, &er.InternalError{Message: err.Error()}
+		return nil, nil, &er.InternalError{Message: err.Error()}
 	}
 
-	return song, nil
+	// Загружаем лирику (может быть nil, если лирика не найдена)
+	lyrics, err := s.lyricsRepo.GetBySongID(ctx, songID)
+	if err != nil {
+		// Если ошибка при загрузке лирики, продолжаем без лирики
+		lyrics = nil
+	}
+
+	return song, lyrics, nil
 }

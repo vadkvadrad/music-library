@@ -109,7 +109,7 @@ func (h *Handler) GetSong() gin.HandlerFunc {
 			return
 		}
 
-		song, err := h.services.Song.GetSong(ctx, uint(id))
+		song, lyrics, err := h.services.Song.GetSong(ctx, uint(id))
 		if err != nil {
 			ctx.Error(err)
 			return
@@ -120,16 +120,26 @@ func (h *Handler) GetSong() gin.HandlerFunc {
 			albumID = *song.AlbumID
 		}
 
-		// Lyrics загружаются отдельно при необходимости
+		// Преобразуем лирику в DTO
+		var lyricsDTO response.LyricsDTO
+		if lyrics != nil && len(lyrics.Couplets) > 0 {
+			coupletsDTO := make([]response.CoupletDTO, len(lyrics.Couplets))
+			for i, couplet := range lyrics.Couplets {
+				coupletsDTO[i] = response.CoupletDTO{
+					Number:  couplet.Number,
+					Couplet: couplet.Text,
+				}
+			}
+			lyricsDTO.Couplets = coupletsDTO
+		}
+
 		ctx.JSON(http.StatusOK, response.SongDTO{
 			ID:       song.ID,
 			Title:    song.Title,
 			AlbumID:  albumID,
 			Duration: song.Duration,
 			FilePath: song.FilePath,
-			Lyrics: response.LyricsDTO{
-				Couplets: []response.CoupletDTO{},
-			},
+			Lyrics:   lyricsDTO,
 		})
 	}
 }

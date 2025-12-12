@@ -162,11 +162,13 @@ func TestGetSong_NotFound(t *testing.T) {
 			return nil, errors.New("song not found")
 		},
 	}
-	service := NewSongService(mockSongRepo, nil, nil, nil, nil, logger)
+	mockLyricsRepo := &mocks.MockLyricsRepo{}
+	service := NewSongService(mockSongRepo, nil, nil, nil, mockLyricsRepo, logger)
 
-	song, err := service.GetSong(context.Background(), 1)
+	song, lyrics, err := service.GetSong(context.Background(), 1)
 
 	assert.Nil(t, song)
+	assert.Nil(t, lyrics)
 	assert.Equal(t, er.ErrSongNotExists, err)
 }
 
@@ -177,11 +179,17 @@ func TestGetSong_Success(t *testing.T) {
 			return &model.Song{ID: 1}, nil
 		},
 	}
-	service := NewSongService(mockSongRepo, nil, nil, nil, nil, logger)
+	mockLyricsRepo := &mocks.MockLyricsRepo{
+		GetBySongIDFunc: func(ctx context.Context, songID uint) (*model.Lyrics, error) {
+			return nil, nil
+		},
+	}
+	service := NewSongService(mockSongRepo, nil, nil, nil, mockLyricsRepo, logger)
 
-	song, err := service.GetSong(context.Background(), 1)
+	song, lyrics, err := service.GetSong(context.Background(), 1)
 
 	assert.NotNil(t, song)
 	assert.NoError(t, err)
 	assert.Equal(t, uint(1), song.ID)
+	assert.Nil(t, lyrics) // Лирика может быть nil
 }

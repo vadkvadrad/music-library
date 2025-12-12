@@ -21,6 +21,11 @@ type NewProfileRequest struct {
 	AvatarURL string `json:"avatar_url" binding:"required" example:"http://url/image/avatar.png"`
 }
 
+type UpdateProfileRequest struct {
+	Bio       string `json:"bio,omitempty" example:"Hello, i am new artist, gonna make songs fo u"`
+	AvatarURL string `json:"avatar_url,omitempty" example:"http://url/image/avatar.png"`
+}
+
 type NewArtistRequest struct {
 	ArtistName    string `json:"artist_name" example:"Imagine Dragons"`
 	Description   string `json:"description" example:"We are team Imagine Dragons, writing songs for you"`
@@ -37,6 +42,12 @@ type NewAlbumRequest struct {
 	Title       string `json:"title" binding:"required"`
 	ReleaseDate string `json:"release_date" binding:"required"`
 	CoverArtURL string `json:"cover_art_url" binding:"required"`
+}
+
+type UpdateAlbumRequest struct {
+	Title       string `json:"title,omitempty"`
+	ReleaseDate string `json:"release_date,omitempty"`
+	CoverArtURL string `json:"cover_art_url,omitempty"`
 }
 
 type NewSongRequest struct {

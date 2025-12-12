@@ -103,3 +103,32 @@ func (s *AlbumService) GetSongs(ctx *gin.Context, albumID uint) ([]model.Song, e
 	}
 	return songs, nil
 }
+
+func (s *AlbumService) UpdateAlbum(ctx *gin.Context, albumID uint, req request.UpdateAlbumRequest) (*model.Album, error) {
+	album, err := s.albumRepository.GetByID(ctx, albumID)
+	if err != nil {
+		if err.Error() == "album not found" {
+			return nil, er.ErrAlbumNotExists
+		}
+		return nil, &er.InternalError{Message: err.Error()}
+	}
+
+	var releaseDate time.Time
+	if req.ReleaseDate != "" {
+		releaseDate, err = time.Parse("2006-01-02", req.ReleaseDate)
+		if err != nil {
+			return nil, er.ErrDateFormat
+		}
+		album.ReleaseDate = releaseDate
+	}
+
+	if req.Title != "" {
+		album.Title = req.Title
+	}
+
+	if req.CoverArtURL != "" {
+		album.CoverArtURL = req.CoverArtURL
+	}
+
+	return s.albumRepository.Update(ctx, album)
+}
