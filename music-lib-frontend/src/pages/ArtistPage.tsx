@@ -5,7 +5,7 @@ import { profileApi } from '../api/profile';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import { formatDate } from '../utils/format';
-import { Mic, Disc, Music, Edit } from 'lucide-react';
+import { Mic, Disc, Edit } from 'lucide-react';
 
 export default function ArtistPage() {
   const { id } = useParams<{ id: string }>();

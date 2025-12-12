@@ -27,7 +27,7 @@ export default function CreateArtistPage() {
     formState: { errors },
     reset,
   } = useForm<NewArtistRequest | UpdateArtistRequest>({
-    defaultValues: hasArtist ? {
+    defaultValues: hasArtist && profile?.artist ? {
       artist_name: profile.artist.name,
       description: profile.artist.description,
       formation_year: profile.artist.formation_year.split('T')[0],

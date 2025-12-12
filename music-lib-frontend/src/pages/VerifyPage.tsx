@@ -7,7 +7,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { VerifyRequest } from '../types';
 import Button from '../components/Button';
 import Input from '../components/Input';
-import { Music, CheckCircle } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
 
 export default function VerifyPage() {
   const navigate = useNavigate();

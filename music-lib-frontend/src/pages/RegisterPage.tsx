@@ -12,7 +12,6 @@ import { Music } from 'lucide-react';
 export default function RegisterPage() {
   const navigate = useNavigate();
   const [error, setError] = useState<string>('');
-  const [sessionId, setSessionId] = useState<string>('');
 
   const {
     register,
@@ -23,7 +22,6 @@ export default function RegisterPage() {
   const mutation = useMutation({
     mutationFn: authApi.register,
     onSuccess: (data) => {
-      setSessionId(data.session_id);
       navigate('/verify', { state: { sessionId: data.session_id } });
     },
     onError: (err: any) => {
