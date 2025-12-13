@@ -40,6 +40,10 @@ func (h *Handler) Init(conf *config.Config) *gin.Engine {
 
 	// Init gin handler
 	router := gin.Default()
+
+	// Настройка для работы за reverse proxy (nginx)
+	router.SetTrustedProxies([]string{"127.0.0.1", "::1"})
+
 	router.Use(
 		middleware.CORS(),
 		gin.Recovery(),

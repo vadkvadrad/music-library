@@ -1,7 +1,9 @@
 import axios, { AxiosError, AxiosInstance } from 'axios';
 import { ApiError } from '../types';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8081/api/v1';
+// В продакшене используем относительный путь, в разработке - полный URL
+const API_BASE_URL = import.meta.env.VITE_API_URL || 
+  (import.meta.env.MODE === 'development' ? 'http://localhost:8081/api/v1' : '/api/v1');
 
 class ApiClient {
   private client: AxiosInstance;
