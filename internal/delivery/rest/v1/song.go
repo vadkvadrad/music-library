@@ -18,6 +18,8 @@ func (h *Handler) initSongRoutes(api *gin.RouterGroup) {
 	song.Use(middleware.AuthMiddleware(h.config))
 	{
 		song.POST("/:album_id", h.AddSong())
+		song.PATCH("/:id", h.UpdateSong())
+		song.GET("/:id/has-permission", h.HasSongPermission())
 	}
 }
 
@@ -109,7 +111,7 @@ func (h *Handler) GetSong() gin.HandlerFunc {
 			return
 		}
 
-		song, lyrics, err := h.services.Song.GetSong(ctx, uint(id))
+		song, lyrics, genres, err := h.services.Song.GetSong(ctx, uint(id))
 		if err != nil {
 			ctx.Error(err)
 			return
@@ -133,6 +135,15 @@ func (h *Handler) GetSong() gin.HandlerFunc {
 			lyricsDTO.Couplets = coupletsDTO
 		}
 
+		// Преобразуем жанры в DTO
+		genreDTOs := make([]response.GenreDTO, len(genres))
+		for i, genre := range genres {
+			genreDTOs[i] = response.GenreDTO{
+				ID:   genre.ID,
+				Name: genre.Name,
+			}
+		}
+
 		ctx.JSON(http.StatusOK, response.SongDTO{
 			ID:       song.ID,
 			Title:    song.Title,
@@ -140,6 +151,69 @@ func (h *Handler) GetSong() gin.HandlerFunc {
 			Duration: song.Duration,
 			FilePath: song.FilePath,
 			Lyrics:   lyricsDTO,
+			Genres:   genreDTOs,
+		})
+	}
+}
+
+func (h *Handler) UpdateSong() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		id, err := strconv.Atoi(ctx.Param("id"))
+		if err != nil {
+			h.logger.Debug("Invalid ID format",
+				"received", ctx.Param("id"),
+				"error", err,
+			)
+			ctx.Error(&er.ValidationError{Message: err.Error()})
+			return
+		}
+
+		var body request.UpdateSongRequest
+		if err := ctx.ShouldBindJSON(&body); err != nil {
+			ctx.Error(err)
+			return
+		}
+
+		user, ok := middleware.GetUserData(ctx)
+		if !ok {
+			ctx.Error(er.ErrNotAuthorized)
+			return
+		}
+
+		// Проверяем права на редактирование песни
+		if !h.services.Permission.HasPermission(user.Id, uint(id), model.SongResource, model.EditPermission) {
+			ctx.Error(er.ErrWrongUserCredentials)
+			return
+		}
+
+		_, err = h.services.Song.UpdateSong(ctx, uint(id), body)
+		if err != nil {
+			ctx.Error(err)
+			return
+		}
+
+		ctx.JSON(http.StatusOK, nil)
+	}
+}
+
+func (h *Handler) HasSongPermission() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		id, err := strconv.Atoi(ctx.Param("id"))
+		if err != nil {
+			ctx.Error(&er.ValidationError{Message: err.Error()})
+			return
+		}
+
+		user, ok := middleware.GetUserData(ctx)
+		if !ok {
+			ctx.Error(er.ErrNotAuthorized)
+			return
+		}
+
+		hasPermission := h.services.Permission.HasPermission(user.Id, uint(id), model.SongResource, model.EditPermission)
+
+		ctx.JSON(http.StatusOK, gin.H{
+			"has_permission": hasPermission,
 		})
 	}
 }

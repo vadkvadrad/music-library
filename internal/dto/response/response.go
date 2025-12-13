@@ -36,12 +36,13 @@ type AlbumDTO struct {
 
 // Для ответов с деталями песни
 type SongDTO struct {
-	ID       uint      `json:"id"`
-	Title    string    `json:"title"`
-	AlbumID  uint      `json:"album_id"`
-	Duration int       `json:"duration"`
-	FilePath string    `json:"file_path"` // или URL для скачивания
-	Lyrics   LyricsDTO `json:"lyrics,omitempty"`
+	ID       uint       `json:"id"`
+	Title    string     `json:"title"`
+	AlbumID  uint       `json:"album_id"`
+	Duration int        `json:"duration"`
+	FilePath string     `json:"file_path"` // или URL для скачивания
+	Lyrics   LyricsDTO  `json:"lyrics,omitempty"`
+	Genres   []GenreDTO `json:"genres,omitempty"`
 }
 
 // Для ответов с текстом песни
@@ -75,4 +76,9 @@ type AddSongResponse struct {
 	AlbumID   uint   `json:"added_to_album"`
 	AlbumName string `json:"album_name"`
 	ArtistID  uint   `json:"artist_id"`
+}
+
+type GenreDTO struct {
+	ID   uint   `json:"id"`
+	Name string `json:"name"`
 }

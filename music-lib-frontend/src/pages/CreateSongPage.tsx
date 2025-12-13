@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useForm, useFieldArray } from 'react-hook-form';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { musicApi } from '../api/music';
-import { NewSongRequest } from '../types';
+import { NewSongRequest, UpdateSongRequest } from '../types';
 import Card from '../components/Card';
 import Button from '../components/Button';
 import Input from '../components/Input';
@@ -12,14 +12,31 @@ import { Music, Plus, Trash2 } from 'lucide-react';
 export default function CreateSongPage() {
   const { albumId } = useParams<{ albumId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
+  const queryClient = useQueryClient();
   const [error, setError] = useState<string>('');
+
+  const songId = location.state?.songId;
+  const isEditing = !!songId;
+
+  const { data: song } = useQuery({
+    queryKey: ['song', songId],
+    queryFn: () => musicApi.getSong(songId!.toString()),
+    enabled: isEditing && !!songId,
+  });
+
+  const { data: allGenres } = useQuery({
+    queryKey: ['genres'],
+    queryFn: musicApi.getAllGenres,
+  });
 
   const {
     register,
     handleSubmit,
     control,
     formState: { errors },
-  } = useForm<NewSongRequest>({
+    reset,
+  } = useForm<NewSongRequest | UpdateSongRequest>({
     defaultValues: {
       genres: [{ genre_id: 0 }],
       lyrics: {
@@ -27,6 +44,22 @@ export default function CreateSongPage() {
       },
     },
   });
+
+  useEffect(() => {
+    if (song) {
+      reset({
+        title: song.title,
+        duration_sec: song.duration,
+        file_path: song.file_path,
+        genres: song.genres && song.genres.length > 0
+          ? song.genres.map((g) => ({ genre_id: g.id }))
+          : [{ genre_id: 0 }],
+        lyrics: {
+          text: song.lyrics?.text?.map((c) => ({ couplet: c.couplet })) || [{ couplet: '' }],
+        },
+      });
+    }
+  }, [song, reset]);
 
   const {
     fields: genreFields,
@@ -46,32 +79,55 @@ export default function CreateSongPage() {
     name: 'lyrics.text',
   });
 
-  const mutation = useMutation({
+  const createMutation = useMutation({
     mutationFn: (data: NewSongRequest) =>
       musicApi.createSong(Number(albumId), data),
     onSuccess: () => {
-      navigate(`/album/${albumId}`);
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      if (albumId) {
+        navigate(`/album/${albumId}`);
+      }
     },
     onError: (err: any) => {
       setError(err.response?.data?.error || 'Ошибка при создании песни');
     },
   });
 
-  const onSubmit = (data: NewSongRequest) => {
+  const updateMutation = useMutation({
+    mutationFn: (data: UpdateSongRequest) => musicApi.updateSong(songId!, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['song', songId] });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
+      navigate(`/song/${songId}`);
+    },
+    onError: (err: any) => {
+      setError(err.response?.data?.error || 'Ошибка при обновлении песни');
+    },
+  });
+
+  const onSubmit = (data: NewSongRequest | UpdateSongRequest) => {
     setError('');
-    mutation.mutate(data);
+    if (isEditing) {
+      updateMutation.mutate(data);
+    } else {
+      createMutation.mutate(data as NewSongRequest);
+    }
   };
 
+  const isLoading = createMutation.isPending || updateMutation.isPending;
+
   return (
-    <div>
+    <div className="animate-fade-in">
       <div className="flex items-center gap-4 mb-6">
-        <Music className="h-8 w-8 text-primary-600" />
-        <h1 className="text-3xl font-bold">Добавить песню</h1>
+        <div className="p-2 rounded-xl bg-primary-600/20">
+          <Music className="h-8 w-8 text-primary-400" />
+        </div>
+        <h1 className="text-3xl font-bold text-white">{isEditing ? 'Редактировать песню' : 'Добавить песню'}</h1>
       </div>
 
       <Card>
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700">
+          <div className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-xl text-red-400">
             {error}
           </div>
         )}
@@ -80,7 +136,7 @@ export default function CreateSongPage() {
           <Input
             label="Название песни"
             {...register('title', {
-              required: 'Название песни обязательно',
+              required: !isEditing ? 'Название песни обязательно' : false,
             })}
             error={errors.title?.message}
             placeholder="Название песни"
@@ -90,7 +146,7 @@ export default function CreateSongPage() {
             label="Длительность (секунды)"
             type="number"
             {...register('duration_sec', {
-              required: 'Длительность обязательна',
+              required: !isEditing ? 'Длительность обязательна' : false,
               min: { value: 1, message: 'Длительность должна быть больше 0' },
               valueAsNumber: true,
             })}
@@ -100,34 +156,53 @@ export default function CreateSongPage() {
           <Input
             label="Путь к файлу"
             {...register('file_path', {
-              required: 'Путь к файлу обязателен',
+              required: !isEditing ? 'Путь к файлу обязателен' : false,
             })}
             error={errors.file_path?.message}
             placeholder="/path/to/song.mp3"
           />
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-white mb-2">
               Жанры
             </label>
             {genreFields.map((field, index) => (
-              <div key={field.id} className="flex gap-2 mb-2">
-                <Input
-                  type="number"
-                  {...register(`genres.${index}.genre_id` as const, {
-                    required: 'ID жанра обязателен',
-                    valueAsNumber: true,
-                  })}
-                  placeholder="ID жанра"
-                />
-                {genreFields.length > 1 && (
-                  <Button
-                    type="button"
-                    variant="danger"
-                    onClick={() => removeGenre(index)}
+              <div key={field.id} className="mb-2">
+                <div className="flex gap-2">
+                  <select
+                    {...register(`genres.${index}.genre_id` as const, {
+                      required: !isEditing ? 'Жанр обязателен' : false,
+                      validate: (value) => {
+                        if (!isEditing && value === 0) {
+                          return 'Выберите жанр';
+                        }
+                        return true;
+                      },
+                      valueAsNumber: true,
+                    })}
+                    className="input flex-1"
                   >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                    <option value={0}>Выберите жанр</option>
+                    {allGenres?.map((genre) => (
+                      <option key={genre.id} value={genre.id}>
+                        {genre.name}
+                      </option>
+                    ))}
+                  </select>
+                  {genreFields.length > 1 && (
+                    <Button
+                      type="button"
+                      variant="danger"
+                      onClick={() => removeGenre(index)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                {errors.genres?.[index]?.genre_id && (
+                  <p className="text-red-400 text-sm mt-1">
+                    {errors.genres[index]?.genre_id?.message}
+                  </p>
                 )}
               </div>
             ))}
@@ -142,7 +217,7 @@ export default function CreateSongPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-white mb-2">
               Текст песни (куплеты)
             </label>
             {coupletFields.map((field, index) => (
@@ -153,7 +228,7 @@ export default function CreateSongPage() {
                 <div className="flex gap-2">
                   <textarea
                     {...register(`lyrics.text.${index}.couplet` as const, {
-                      required: 'Текст куплета обязателен',
+                      required: !isEditing ? 'Текст куплета обязателен' : false,
                     })}
                     className="input min-h-[80px] flex-1"
                     placeholder="Текст куплета..."
@@ -183,10 +258,10 @@ export default function CreateSongPage() {
           <Button
             type="submit"
             variant="primary"
-            isLoading={mutation.isPending}
+            isLoading={isLoading}
             className="w-full"
           >
-            Создать песню
+            {isEditing ? 'Сохранить изменения' : 'Создать песню'}
           </Button>
         </form>
       </Card>

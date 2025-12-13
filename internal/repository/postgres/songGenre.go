@@ -66,3 +66,31 @@ func (r *SongGenreRepository) Delete(ctx context.Context, id uint) error {
 	}
 	return nil
 }
+
+func (r *SongGenreRepository) DeleteBySongID(ctx context.Context, songID uint) error {
+	query := `DELETE FROM song_genres WHERE song_id = $1`
+	_, err := r.db.ExecContext(ctx, query, songID)
+	return err
+}
+
+func (r *SongGenreRepository) GetBySongID(ctx context.Context, songID uint) ([]model.SongGenre, error) {
+	query := `SELECT id, song_id, genre_id FROM song_genres WHERE song_id = $1`
+
+	rows, err := r.db.QueryContext(ctx, query, songID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var songGenres []model.SongGenre
+	for rows.Next() {
+		var sg model.SongGenre
+		err := rows.Scan(&sg.ID, &sg.SongID, &sg.GenreID)
+		if err != nil {
+			return nil, err
+		}
+		songGenres = append(songGenres, sg)
+	}
+
+	return songGenres, rows.Err()
+}

@@ -58,6 +58,14 @@ type NewSongRequest struct {
 	Lyrics   AddLyrics `json:"lyrics" binding:"required"`
 }
 
+type UpdateSongRequest struct {
+	Title    string    `json:"title,omitempty"`
+	Genres   []Genres  `json:"genres,omitempty"`
+	Duration int       `json:"duration_sec,omitempty"`
+	FilePath string    `json:"file_path,omitempty"`
+	Lyrics   AddLyrics `json:"lyrics,omitempty"`
+}
+
 type Genres struct {
 	GenreID uint `json:"genre_id" binding:"required"`
 }

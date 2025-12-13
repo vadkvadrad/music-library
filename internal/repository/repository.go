@@ -83,11 +83,15 @@ type IGenreRepository interface {
 
 	GetById(ctx context.Context, id uint) (*model.Genre, error)
 	GetByIds(ctx context.Context, ids []uint) ([]model.Genre, error)
+	GetAll(ctx context.Context) ([]model.Genre, error)
 	IsExists(ctx context.Context, name string) bool
 }
 
 type ISongGenreRepository interface {
 	Repository[model.SongGenre]
+
+	DeleteBySongID(ctx context.Context, songID uint) error
+	GetBySongID(ctx context.Context, songID uint) ([]model.SongGenre, error)
 }
 
 type IPermissionRepository interface {

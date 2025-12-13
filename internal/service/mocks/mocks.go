@@ -222,6 +222,7 @@ type MockGenreRepo struct {
 	DeleteFunc   func(ctx context.Context, id uint) error
 	GetByIdFunc  func(ctx context.Context, id uint) (*model.Genre, error)
 	GetByIdsFunc func(ctx context.Context, ids []uint) ([]model.Genre, error)
+	GetAllFunc   func(ctx context.Context) ([]model.Genre, error)
 	IsExistsFunc func(ctx context.Context, name string) bool
 }
 
@@ -245,15 +246,21 @@ func (m *MockGenreRepo) GetByIds(ctx context.Context, ids []uint) ([]model.Genre
 	return m.GetByIdsFunc(ctx, ids)
 }
 
+func (m *MockGenreRepo) GetAll(ctx context.Context) ([]model.Genre, error) {
+	return m.GetAllFunc(ctx)
+}
+
 func (m *MockGenreRepo) IsExists(ctx context.Context, name string) bool {
 	return m.IsExistsFunc(ctx, name)
 }
 
 // MockSongGenreRepo для ISongGenreRepository
 type MockSongGenreRepo struct {
-	CreateFunc func(ctx context.Context, entity *model.SongGenre) (*model.SongGenre, error)
-	UpdateFunc func(ctx context.Context, entity *model.SongGenre) (*model.SongGenre, error)
-	DeleteFunc func(ctx context.Context, id uint) error
+	CreateFunc        func(ctx context.Context, entity *model.SongGenre) (*model.SongGenre, error)
+	UpdateFunc        func(ctx context.Context, entity *model.SongGenre) (*model.SongGenre, error)
+	DeleteFunc        func(ctx context.Context, id uint) error
+	DeleteBySongIDFunc func(ctx context.Context, songID uint) error
+	GetBySongIDFunc   func(ctx context.Context, songID uint) ([]model.SongGenre, error)
 }
 
 func (m *MockSongGenreRepo) Create(ctx context.Context, entity *model.SongGenre) (*model.SongGenre, error) {
@@ -266,6 +273,14 @@ func (m *MockSongGenreRepo) Update(ctx context.Context, entity *model.SongGenre)
 
 func (m *MockSongGenreRepo) Delete(ctx context.Context, id uint) error {
 	return m.DeleteFunc(ctx, id)
+}
+
+func (m *MockSongGenreRepo) DeleteBySongID(ctx context.Context, songID uint) error {
+	return m.DeleteBySongIDFunc(ctx, songID)
+}
+
+func (m *MockSongGenreRepo) GetBySongID(ctx context.Context, songID uint) ([]model.SongGenre, error) {
+	return m.GetBySongIDFunc(ctx, songID)
 }
 
 // MockPermissionRepo для IPermissionRepository

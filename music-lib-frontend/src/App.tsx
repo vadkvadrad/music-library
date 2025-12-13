@@ -13,6 +13,7 @@ import ProfilePage from './pages/ProfilePage';
 import CreateArtistPage from './pages/CreateArtistPage';
 import CreateAlbumPage from './pages/CreateAlbumPage';
 import CreateSongPage from './pages/CreateSongPage';
+import GenresPage from './pages/GenresPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
@@ -101,6 +102,16 @@ function App() {
           <ProtectedRoute>
             <Layout>
               <CreateSongPage />
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/genres"
+        element={
+          <ProtectedRoute>
+            <Layout>
+              <GenresPage />
             </Layout>
           </ProtectedRoute>
         }

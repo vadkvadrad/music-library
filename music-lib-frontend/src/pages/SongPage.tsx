@@ -1,18 +1,30 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { musicApi } from '../api/music';
+import { useAuth } from '../contexts/AuthContext';
 import Card from '../components/Card';
+import Button from '../components/Button';
 import { formatDuration } from '../utils/format';
-import { Music, Disc } from 'lucide-react';
+import { Music, Disc, Edit, Tag } from 'lucide-react';
 
 export default function SongPage() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
   const { data: song, isLoading, error } = useQuery({
     queryKey: ['song', id],
     queryFn: () => musicApi.getSong(id!),
     enabled: !!id,
   });
+
+  const { data: permission } = useQuery({
+    queryKey: ['song-permission', id],
+    queryFn: () => musicApi.hasSongPermission(id!),
+    enabled: !!id && isAuthenticated,
+  });
+
+  const canEdit = permission?.has_permission || false;
 
   if (isLoading) {
     return (
@@ -33,16 +45,40 @@ export default function SongPage() {
   return (
     <div className="animate-fade-in">
       <div className="mb-8">
-        <div className="flex items-center gap-4 mb-6">
-          <div className="p-3 rounded-xl bg-primary-600/20">
-            <Music className="h-10 w-10 text-primary-400" />
-          </div>
-          <div>
-            <h1 className="text-4xl font-bold text-white">{song.title}</h1>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <div className="p-3 rounded-xl bg-primary-600/20">
+              <Music className="h-10 w-10 text-primary-400" />
+            </div>
+            <div>
+              <h1 className="text-4xl font-bold text-white">{song.title}</h1>
             <p className="text-gray-400 mt-2">
               Длительность: {formatDuration(song.duration)}
             </p>
+            {song.genres && song.genres.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-3">
+                {song.genres.map((genre) => (
+                  <span
+                    key={genre.id}
+                    className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary-600/20 text-primary-300 text-sm border border-primary-500/30"
+                  >
+                    <Tag className="h-3 w-3" />
+                    {genre.name}
+                  </span>
+                ))}
+              </div>
+            )}
           </div>
+        </div>
+        {canEdit && song.album_id && (
+            <Button
+              variant="primary"
+              onClick={() => navigate(`/create-song/${song.album_id}`, { state: { songId: song.id } })}
+            >
+              <Edit className="h-4 w-4 mr-2" />
+              Редактировать
+            </Button>
+          )}
         </div>
         {song.album_id && (
           <Link

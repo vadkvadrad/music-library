@@ -165,7 +165,7 @@ func TestGetSong_NotFound(t *testing.T) {
 	mockLyricsRepo := &mocks.MockLyricsRepo{}
 	service := NewSongService(mockSongRepo, nil, nil, nil, mockLyricsRepo, logger)
 
-	song, lyrics, err := service.GetSong(context.Background(), 1)
+	song, lyrics, _, err := service.GetSong(context.Background(), 1)
 
 	assert.Nil(t, song)
 	assert.Nil(t, lyrics)
@@ -184,9 +184,15 @@ func TestGetSong_Success(t *testing.T) {
 			return nil, nil
 		},
 	}
-	service := NewSongService(mockSongRepo, nil, nil, nil, mockLyricsRepo, logger)
+	mockSongGenreRepo := &mocks.MockSongGenreRepo{
+		GetBySongIDFunc: func(ctx context.Context, songID uint) ([]model.SongGenre, error) {
+			return []model.SongGenre{}, nil
+		},
+	}
+	mockGenreRepo := &mocks.MockGenreRepo{}
+	service := NewSongService(mockSongRepo, nil, mockSongGenreRepo, mockGenreRepo, mockLyricsRepo, logger)
 
-	song, lyrics, err := service.GetSong(context.Background(), 1)
+	song, lyrics, _, err := service.GetSong(context.Background(), 1)
 
 	assert.NotNil(t, song)
 	assert.NoError(t, err)

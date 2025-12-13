@@ -52,6 +52,7 @@ export interface Song {
   duration: number;
   file_path: string;
   lyrics?: Lyrics;
+  genres?: Genre[];
 }
 
 export interface Lyrics {
@@ -127,6 +128,16 @@ export interface NewSongRequest {
   duration_sec: number;
   file_path: string;
   lyrics: {
+    text: { couplet: string }[];
+  };
+}
+
+export interface UpdateSongRequest {
+  title?: string;
+  genres?: { genre_id: number }[];
+  duration_sec?: number;
+  file_path?: string;
+  lyrics?: {
     text: { couplet: string }[];
   };
 }

@@ -8,6 +8,7 @@ import {
   NewAlbumRequest,
   UpdateAlbumRequest,
   NewSongRequest,
+  UpdateSongRequest,
   Genre,
   NewGenreRequest,
   UpdateGenreRequest,
@@ -64,7 +65,21 @@ export const musicApi = {
     await apiClient.post(`/song/${albumId}`, data);
   },
 
+  updateSong: async (id: number, data: UpdateSongRequest): Promise<void> => {
+    await apiClient.patch(`/song/${id}`, data);
+  },
+
+  hasSongPermission: async (id: string): Promise<{ has_permission: boolean }> => {
+    const response = await apiClient.get<{ has_permission: boolean }>(`/song/${id}/has-permission`);
+    return response.data;
+  },
+
   // Genres
+  getAllGenres: async (): Promise<Genre[]> => {
+    const response = await apiClient.get<Genre[]>('/genre');
+    return response.data;
+  },
+
   getGenre: async (id: string): Promise<Genre> => {
     const response = await apiClient.get<Genre>(`/genre/${id}`);
     return response.data;

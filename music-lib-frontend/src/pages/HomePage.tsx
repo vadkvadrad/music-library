@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { profileApi } from '../api/profile';
-import { Music, Search, Plus, User, Edit, Mic, Disc } from 'lucide-react';
+import { Music, Search, Plus, User, Edit, Mic, Disc, Tag } from 'lucide-react';
 import Button from '../components/Button';
 import Card from '../components/Card';
 import { formatDate } from '../utils/format';
@@ -35,7 +35,7 @@ export default function HomePage() {
         </p>
       </div>
 
-      <div className={`grid grid-cols-1 ${isAuthenticated ? (hasArtist ? 'md:grid-cols-2' : 'md:grid-cols-3') : 'md:grid-cols-1'} gap-6 mb-12`}>
+      <div className={`grid grid-cols-1 ${isAuthenticated ? (hasArtist ? 'md:grid-cols-3' : 'md:grid-cols-4') : 'md:grid-cols-1'} gap-6 mb-12`}>
         <Card hover className="text-center">
           <div className="p-3 rounded-xl bg-primary-600/20 w-fit mx-auto mb-4">
             <Search className="h-8 w-8 text-primary-400" />
@@ -96,6 +96,21 @@ export default function HomePage() {
               <Link to="/profile">
                 <Button variant="secondary" className="w-full">
                   Мой профиль
+                </Button>
+              </Link>
+            </Card>
+
+            <Card hover className="text-center">
+              <div className="p-3 rounded-xl bg-primary-600/20 w-fit mx-auto mb-4">
+                <Tag className="h-8 w-8 text-primary-400" />
+              </div>
+              <h2 className="text-xl font-semibold mb-2 text-white">Жанры</h2>
+              <p className="text-gray-400 mb-6">
+                Просмотрите все жанры и создайте новый
+              </p>
+              <Link to="/genres">
+                <Button variant="primary" className="w-full">
+                  Управление жанрами
                 </Button>
               </Link>
             </Card>

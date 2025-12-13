@@ -138,13 +138,13 @@ func (s *SongService) addLyrics(ctx context.Context, songID uint, req request.Ad
 	return s.lyricsRepo.Upsert(ctx, &lyrics)
 }
 
-func (s *SongService) GetSong(ctx context.Context, songID uint) (*model.Song, *model.Lyrics, error) {
+func (s *SongService) GetSong(ctx context.Context, songID uint) (*model.Song, *model.Lyrics, []model.Genre, error) {
 	song, err := s.songRepo.GetByID(ctx, songID)
 	if err != nil {
 		if err.Error() == "song not found" {
-			return nil, nil, er.ErrSongNotExists
+			return nil, nil, nil, er.ErrSongNotExists
 		}
-		return nil, nil, &er.InternalError{Message: err.Error()}
+		return nil, nil, nil, &er.InternalError{Message: err.Error()}
 	}
 
 	// Загружаем лирику (может быть nil, если лирика не найдена)
@@ -154,5 +154,103 @@ func (s *SongService) GetSong(ctx context.Context, songID uint) (*model.Song, *m
 		lyrics = nil
 	}
 
-	return song, lyrics, nil
+	// Загружаем жанры песни
+	var genres []model.Genre
+	songGenres, err := s.songGenreRepo.GetBySongID(ctx, songID)
+	if err == nil && len(songGenres) > 0 {
+		genreIDs := make([]uint, len(songGenres))
+		for i, sg := range songGenres {
+			genreIDs[i] = sg.GenreID
+		}
+		genres, err = s.genreRepo.GetByIds(ctx, genreIDs)
+		if err != nil {
+			// Если ошибка при загрузке жанров, продолжаем без жанров
+			genres = []model.Genre{}
+		}
+	}
+
+	return song, lyrics, genres, nil
+}
+
+func (s *SongService) UpdateSong(ctx context.Context, songID uint, songReq request.UpdateSongRequest) (*model.Song, error) {
+	s.logger.Debugw("Attempting to update song",
+		"song_id", songID,
+		"song_title", songReq.Title,
+		"duration", songReq.Duration,
+	)
+
+	song, err := s.songRepo.GetByID(ctx, songID)
+	if err != nil {
+		if err.Error() == "song not found" {
+			return nil, er.ErrSongNotExists
+		}
+		return nil, &er.InternalError{Message: err.Error()}
+	}
+
+	// Обновляем поля песни, если они предоставлены
+	if songReq.Title != "" {
+		song.Title = songReq.Title
+	}
+	if songReq.Duration != 0 {
+		song.Duration = songReq.Duration
+	}
+	if songReq.FilePath != "" {
+		song.FilePath = songReq.FilePath
+	}
+
+	updatedSong, err := s.songRepo.Update(ctx, song)
+	if err != nil {
+		s.logger.Errorw("Failed to update song",
+			"song_id", songID,
+			"error", err.Error(),
+		)
+		return nil, &er.InternalError{Message: err.Error()}
+	}
+
+	// Обновляем жанры, если они предоставлены
+	if len(songReq.Genres) > 0 {
+		// Удаляем старые жанры
+		err = s.removeGenres(ctx, songID)
+		if err != nil {
+			s.logger.Errorw("Failed to remove old genres",
+				"song_id", songID,
+				"error", err.Error(),
+			)
+			return nil, &er.InternalError{Message: err.Error()}
+		}
+
+		// Добавляем новые жанры
+		err = s.addGenres(ctx, songID, songReq.Genres)
+		if err != nil {
+			s.logger.Errorw("Failed to add genres",
+				"song_id", songID,
+				"error", err.Error(),
+			)
+			return nil, &er.InternalError{Message: err.Error()}
+		}
+	}
+
+	// Обновляем лирику, если она предоставлена
+	if len(songReq.Lyrics.Text) > 0 {
+		err = s.addLyrics(ctx, songID, songReq.Lyrics)
+		if err != nil {
+			s.logger.Errorw("Failed to update lyrics",
+				"song_id", songID,
+				"error", err.Error(),
+			)
+			return nil, &er.InternalError{Message: err.Error()}
+		}
+	}
+
+	s.logger.Debug("Song updated successfully")
+	return updatedSong, nil
+}
+
+func (s *SongService) removeGenres(ctx context.Context, songID uint) error {
+	// Удаляем все связи жанров с песней
+	err := s.songGenreRepo.DeleteBySongID(ctx, songID)
+	if err != nil {
+		return &er.InternalError{Message: err.Error()}
+	}
+	return nil
 }

@@ -81,3 +81,26 @@ func (s *GenreService) UpdateGenre(ctx *gin.Context, id uint, nameToUpdate strin
 	s.logger.Debug("genre updated successfully")
 	return nil
 }
+
+func (s *GenreService) GetAllGenres(ctx *gin.Context) ([]model.Genre, error) {
+	genres, err := s.genreRepo.GetAll(ctx)
+	if err != nil {
+		s.logger.Errorw("Error while getting all genres",
+			"error type", "internal",
+			"error", err.Error(),
+		)
+		return nil, &er.InternalError{Message: err.Error()}
+	}
+	return genres, nil
+}
+
+func (s *GenreService) GetGenre(ctx *gin.Context, id uint) (*model.Genre, error) {
+	genre, err := s.genreRepo.GetById(ctx, id)
+	if err != nil {
+		if err.Error() == "genre not found" {
+			return nil, er.ErrGenreNotExists
+		}
+		return nil, &er.InternalError{Message: err.Error()}
+	}
+	return genre, nil
+}

@@ -132,3 +132,25 @@ func (r *GenreRepository) GetByIds(ctx context.Context, ids []uint) ([]model.Gen
 
 	return genres, rows.Err()
 }
+
+func (r *GenreRepository) GetAll(ctx context.Context) ([]model.Genre, error) {
+	query := `SELECT id, name FROM genres ORDER BY name ASC`
+
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var genres []model.Genre
+	for rows.Next() {
+		var genre model.Genre
+		err := rows.Scan(&genre.ID, &genre.Name)
+		if err != nil {
+			return nil, err
+		}
+		genres = append(genres, genre)
+	}
+
+	return genres, rows.Err()
+}
