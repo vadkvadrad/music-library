@@ -1,0 +1,59 @@
+services:
+  postgres:
+    container_name: music-lib-data
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: my_pass
+      PGDATA: /data/postgres
+    volumes:
+      - ./postgres-data:/data/postgres
+    ports:
+      - "5433:5432"
+    networks:
+      - music-lib-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  migrations:
+    container_name: music-lib-migrations
+    build:
+      context: .
+      dockerfile: Dockerfile.migrations
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - DSN=postgres://postgres:my_pass@postgres:5432/postgres?sslmode=disable
+    networks:
+      - music-lib-net
+    restart: "no"
+
+  app:
+    container_name: music-lib-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=postgres
+      - DB_PASSWORD=my_pass
+      - DB_NAME=postgres
+    ports:
+      - "8081:8081"
+    restart: unless-stopped
+    networks:
+      - music-lib-net
+
+networks:
+  music-lib-net:
+    driver: bridge

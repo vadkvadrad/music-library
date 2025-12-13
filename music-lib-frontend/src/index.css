@@ -1,0 +1,112 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    @apply antialiased;
+  }
+  
+  body {
+    background: linear-gradient(180deg, #1a1a1a 0%, #121212 100%);
+    @apply text-gray-100 min-h-screen;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-semibold;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-6 py-3 rounded-xl font-medium transition-all duration-300 transform;
+    @apply active:scale-95;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    @apply text-white hover:scale-105;
+    box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3), 0 4px 6px -2px rgba(99, 102, 241, 0.3);
+  }
+  
+  .btn-primary:hover {
+    box-shadow: 0 20px 25px -5px rgba(99, 102, 241, 0.4), 0 10px 10px -5px rgba(99, 102, 241, 0.4);
+  }
+  
+  .btn-primary:active {
+    box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.3), 0 2px 4px -1px rgba(99, 102, 241, 0.3);
+  }
+
+  .btn-secondary {
+    background-color: #2a2a2a;
+    @apply text-gray-200 border border-gray-700;
+    @apply hover:border-gray-600 hover:scale-105;
+  }
+  
+  .btn-secondary:hover {
+    background-color: #1a1a1a;
+  }
+  
+  .btn-secondary:active {
+    background-color: #121212;
+  }
+
+  .btn-danger {
+    @apply bg-gradient-to-r from-red-500 to-red-600 text-white hover:scale-105;
+    box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.3), 0 4px 6px -2px rgba(239, 68, 68, 0.3);
+  }
+  
+  .btn-danger:hover {
+    box-shadow: 0 20px 25px -5px rgba(239, 68, 68, 0.4), 0 10px 10px -5px rgba(239, 68, 68, 0.4);
+  }
+  
+  .btn-danger:active {
+    box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.3), 0 2px 4px -1px rgba(239, 68, 68, 0.3);
+  }
+
+  .input {
+    background-color: #2a2a2a;
+    @apply w-full px-4 py-3 border border-gray-700 rounded-xl;
+    @apply text-gray-100 placeholder-gray-500;
+    @apply focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500;
+    @apply transition-all duration-200;
+  }
+
+  .card {
+    background-color: #2a2a2a;
+    @apply rounded-2xl p-6 border border-gray-800/50;
+    @apply transition-all duration-300;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  
+  .card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    border-color: rgba(55, 65, 81, 0.5);
+  }
+
+  .card-hover {
+    @apply card cursor-pointer;
+    @apply hover:scale-[1.02] active:scale-[0.98];
+  }
+  
+  .card-hover:hover {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  }
+
+  .nav-link {
+    @apply flex items-center space-x-2 px-4 py-2 rounded-xl;
+    @apply text-gray-300 hover:text-white;
+    @apply transition-all duration-200;
+  }
+  
+  .nav-link:hover {
+    background-color: #2a2a2a;
+  }
+
+  .nav-link-active {
+    @apply nav-link text-white bg-primary-600/20 border border-primary-500/30;
+  }
+}
+

@@ -1,0 +1,8 @@
+-- Создание таблицы lyrics
+CREATE TABLE IF NOT EXISTS lyrics (
+    song_id INTEGER PRIMARY KEY,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_lyrics_song FOREIGN KEY (song_id) REFERENCES songs(id) ON DELETE CASCADE
+);
+

@@ -1,14 +1,12 @@
 package service
 
 import (
-	"errors"
 	"music-lib/internal/model"
 	"music-lib/internal/repository"
 	"music-lib/pkg/er"
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
-	"gorm.io/gorm"
 )
 
 type GenreService struct {
@@ -19,13 +17,12 @@ type GenreService struct {
 
 func NewGenreService(
 	genre repository.IGenreRepository,
-	sugar *zap.SugaredLogger,) *GenreService {
+	sugar *zap.SugaredLogger) *GenreService {
 	return &GenreService{
 		genreRepo: genre,
-		logger: sugar,
+		logger:    sugar,
 	}
 }
-
 
 func (s *GenreService) NewGenre(ctx *gin.Context, genreName string) error {
 	if s.genreRepo.IsExists(ctx, genreName) {
@@ -37,7 +34,6 @@ func (s *GenreService) NewGenre(ctx *gin.Context, genreName string) error {
 
 	_, err := s.genreRepo.Create(ctx, &model.Genre{
 		Name: genreName,
-		SongGenres: nil,
 	})
 
 	if err != nil {
@@ -55,11 +51,10 @@ func (s *GenreService) NewGenre(ctx *gin.Context, genreName string) error {
 	return nil
 }
 
-
 func (s *GenreService) UpdateGenre(ctx *gin.Context, id uint, nameToUpdate string) error {
 	genre, err := s.genreRepo.GetById(ctx, id)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+		if err.Error() == "genre not found" {
 			s.logger.Debugw("Can't find genre",
 				"genre id", id,
 				"error", err.Error(),

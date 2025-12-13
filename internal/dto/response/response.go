@@ -30,6 +30,7 @@ type AlbumDTO struct {
 	Title       string    `json:"title"`
 	ReleaseDate time.Time `json:"release_date"` // Формат: "2006-01-02"
 	CoverArtURL string    `json:"cover_art_url"`
+	ArtistID    uint      `json:"artist_id,omitempty"`
 	Songs       []SongDTO `json:"songs,omitempty"`
 }
 

@@ -1,7 +1,6 @@
 package service
 
 import (
-	"errors"
 	"music-lib/internal/dto/request"
 	"music-lib/internal/model"
 	"music-lib/internal/repository"
@@ -11,7 +10,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
-	"gorm.io/gorm"
 )
 
 type ArtistService struct {
@@ -23,7 +21,7 @@ type ArtistService struct {
 func NewArtistService(artist repository.IArtistRepository, log *zap.SugaredLogger) *ArtistService {
 	return &ArtistService{
 		artistRepository: artist,
-		logger: log,
+		logger:           log,
 	}
 }
 
@@ -46,7 +44,7 @@ func (s *ArtistService) NewArtist(ctx *gin.Context, body request.NewArtistReques
 		return nil, er.ErrDateFormat
 	}
 
-	artist, err :=  s.artistRepository.Create(ctx, &model.Artist{
+	artist, err := s.artistRepository.Create(ctx, &model.Artist{
 		Name:          body.ArtistName,
 		Description:   body.Description,
 		FormationYear: formationDate,
@@ -64,7 +62,6 @@ func (s *ArtistService) NewArtist(ctx *gin.Context, body request.NewArtistReques
 	return artist, nil
 }
 
-
 func (s *ArtistService) GetArtist(ctx *gin.Context, strID string) (*model.Artist, error) {
 	id, err := strconv.Atoi(strID)
 	if err != nil {
@@ -73,7 +70,7 @@ func (s *ArtistService) GetArtist(ctx *gin.Context, strID string) (*model.Artist
 
 	artist, err := s.artistRepository.GetWithAlbums(ctx, uint(id))
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+		if err.Error() == "artist not found" {
 			return nil, er.ErrArtistNotExists
 		}
 		return nil, &er.InternalError{Message: err.Error()}
@@ -82,27 +79,26 @@ func (s *ArtistService) GetArtist(ctx *gin.Context, strID string) (*model.Artist
 	return artist, nil
 }
 
-
 func (s *ArtistService) UpdateArtist(ctx *gin.Context, id uint, req request.UpdateArtistRequest) (*model.Artist, error) {
 	s.logger.Debugw("Attempting to get artist",
 		"id", id,
 	)
 	artist, err := s.artistRepository.GetByID(ctx, id)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+		if err.Error() == "artist not found" {
 			return nil, er.ErrArtistNotExists
 		}
 		return nil, &er.InternalError{Message: err.Error()}
 	}
 
 	var formationDate time.Time
-	if req.FormationYear != ""{
+	if req.FormationYear != "" {
 		formationDate, err = time.Parse("2006-01-02", req.FormationYear)
 		if err != nil {
 			return nil, er.ErrDateFormat
 		}
 	}
-	
+
 	s.logger.Debugw("Changing artist params",
 		"Previous name", artist.Name,
 		"Updated name", req.ArtistName,
@@ -117,4 +113,12 @@ func (s *ArtistService) UpdateArtist(ctx *gin.Context, id uint, req request.Upda
 
 	s.logger.Debug("Artist updated successfully")
 	return s.artistRepository.Update(ctx, artist)
+}
+
+func (s *ArtistService) GetAlbums(ctx *gin.Context, artistID uint) ([]model.Album, error) {
+	albums, err := s.artistRepository.GetAlbumsByArtistID(ctx, artistID)
+	if err != nil {
+		return nil, &er.InternalError{Message: err.Error()}
+	}
+	return albums, nil
 }

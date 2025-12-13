@@ -1,31 +1,33 @@
 package postgres
 
 import (
-    "gorm.io/gorm"
+	"database/sql"
+	"fmt"
 )
 
-func DropTables(db *gorm.DB) error {
-    tables := []string{
-        "song_genres",
-        "genres",
-        "couplets",
-        "lyrics",
-        "songs",
-        "albums",
-        "artists",
-        "histories",
-        "collection_items",
-        "collections",
-        "favorites",
-        "profiles",
-        "users",
-        "resource_permission",
-    }
+func DropTables(db *sql.DB) error {
+	tables := []string{
+		"collection_items",
+		"collections",
+		"favorites",
+		"histories",
+		"profiles",
+		"resource_permissions",
+		"song_genres",
+		"couplets",
+		"lyrics",
+		"songs",
+		"albums",
+		"artists",
+		"genres",
+		"users",
+	}
 
-    for _, table := range tables {
-        if err := db.Migrator().DropTable(table); err != nil {
-            return err
-        }
-    }
-    return nil
+	for _, table := range tables {
+		query := fmt.Sprintf("DROP TABLE IF EXISTS %s CASCADE", table)
+		if _, err := db.Exec(query); err != nil {
+			return fmt.Errorf("failed to drop table %s: %w", table, err)
+		}
+	}
+	return nil
 }
