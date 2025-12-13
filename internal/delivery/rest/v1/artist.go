@@ -21,6 +21,7 @@ func (h *Handler) initArtistRoutes(api *gin.RouterGroup) {
 	{
 		artist.POST("", h.NewArtist())
 		artist.PATCH("/:id", h.UpdateArtist())
+		artist.GET("/:id/has-permission", h.HasArtistPermission())
 	}
 }
 
@@ -142,6 +143,29 @@ func (h *Handler) UpdateArtist() gin.HandlerFunc {
 			Name:          artist.Name,
 			Description:   artist.Description,
 			FormationYear: artist.FormationYear,
+		})
+	}
+}
+
+func (h *Handler) HasArtistPermission() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		strID := ctx.Param("id")
+		id, err := strconv.Atoi(strID)
+		if err != nil {
+			ctx.Error(&er.ValidationError{Message: err.Error()})
+			return
+		}
+
+		user, ok := middleware.GetUserData(ctx)
+		if !ok {
+			ctx.Error(er.ErrNotAuthorized)
+			return
+		}
+
+		hasPermission := h.services.Permission.HasPermission(user.Id, uint(id), model.ArtistResource, model.EditPermission)
+
+		ctx.JSON(http.StatusOK, gin.H{
+			"has_permission": hasPermission,
 		})
 	}
 }

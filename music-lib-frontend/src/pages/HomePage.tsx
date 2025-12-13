@@ -56,15 +56,15 @@ export default function HomePage() {
             {hasArtist && profile?.artist?.id ? (
               <Card hover className="text-center">
                 <div className="p-3 rounded-xl bg-primary-600/20 w-fit mx-auto mb-4">
-                  <Edit className="h-8 w-8 text-primary-400" />
+                  <Mic className="h-8 w-8 text-primary-400" />
                 </div>
-                <h2 className="text-xl font-semibold mb-2 text-white">Редактировать</h2>
+                <h2 className="text-xl font-semibold mb-2 text-white">Мой артист</h2>
                 <p className="text-gray-400 mb-6">
                   Управляйте своим артистом, альбомами и песнями
                 </p>
                 <Link to={`/artist/${profile.artist.id}`}>
                   <Button variant="primary" className="w-full">
-                    Редактировать артиста
+                    Открыть
                   </Button>
                 </Link>
               </Card>
@@ -130,7 +130,7 @@ export default function HomePage() {
               <Link to={`/artist/${profile.artist.id}`}>
                 <Button variant="primary">
                   <Edit className="h-4 w-4 mr-2" />
-                  Редактировать
+                  Открыть
                 </Button>
               </Link>
             </div>

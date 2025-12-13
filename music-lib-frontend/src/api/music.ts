@@ -30,6 +30,11 @@ export const musicApi = {
     return response.data;
   },
 
+  hasArtistPermission: async (id: string): Promise<{ has_permission: boolean }> => {
+    const response = await apiClient.get<{ has_permission: boolean }>(`/artist/${id}/has-permission`);
+    return response.data;
+  },
+
   // Albums
   getAlbum: async (id: string): Promise<Album> => {
     const response = await apiClient.get<Album>(`/album/${id}`);
